@@ -56,6 +56,11 @@ export default {
           border: "hsl(var(--glass-border))",
         },
         glow: "hsl(var(--glow))",
+        "light-section": {
+          DEFAULT: "hsl(var(--light-section-bg))",
+          fg: "hsl(var(--light-section-fg))",
+          muted: "hsl(var(--light-section-muted))",
+        },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",

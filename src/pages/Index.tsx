@@ -350,7 +350,7 @@ const Index = () => {
         <div className="container mx-auto px-4">
           <div className="grid md:grid-cols-2 gap-16 items-center">
             <ScrollReveal direction="left">
-              <div className="glass-card p-1.5 rounded-3xl overflow-hidden" style={{ backgroundColor: cardBg }}>
+              <motion.div className="glass-card p-1.5 rounded-3xl overflow-hidden" style={{ backgroundColor: cardBg }}>
                 <img
                   src="https://images.unsplash.com/photo-1531297484001-80022131f5a1?w=600"
                   alt="Our Store"

@@ -49,10 +49,10 @@
     --sidebar-border: 220 18% 20%;
     --sidebar-ring: 199 89% 60%;
 
-    /* Light mode overrides for scroll transition */
-    --light-bg: 40 20% 97%;
-    --light-card: 40 15% 95%;
-    --light-fg: 220 20% 12%;
+    /* Light section colors */
+    --light-section-bg: 220 15% 96%;
+    --light-section-fg: 220 20% 12%;
+    --light-section-muted: 215 15% 45%;
   }
 }
 

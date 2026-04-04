@@ -380,7 +380,7 @@ const Index = () => {
       <section className="section-gap">
         <div className="container mx-auto px-4">
           <ScrollReveal>
-            <div className="glass-card p-10 md:p-16 text-center rounded-3xl" style={{ backgroundColor: cardBg }}>
+            <motion.div className="glass-card p-10 md:p-16 text-center rounded-3xl" style={{ backgroundColor: cardBg }}>
               <h2 className="text-3xl md:text-5xl font-heading font-bold mb-6">
                 Need Help Choosing?
               </h2>

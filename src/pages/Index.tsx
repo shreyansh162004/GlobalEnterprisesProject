@@ -356,7 +356,7 @@ const Index = () => {
                   alt="Our Store"
                   className="w-full h-72 md:h-[450px] object-cover rounded-2xl"
                 />
-              </div>
+              </motion.div>
             </ScrollReveal>
             <ScrollReveal direction="right">
               <div className="space-y-6">

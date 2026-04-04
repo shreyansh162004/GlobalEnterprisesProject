@@ -175,8 +175,11 @@ const Index = () => {
         </div>
       </section>
 
+      {/* Gradient transition light → dark */}
+      <div className="h-24 md:h-32 section-divider-dark" />
+
       {/* Why Choose Us - Dark */}
-      <section className="section-gap bg-background text-foreground transition-colors duration-500">
+      <section className="py-16 md:py-24 bg-background text-foreground transition-colors duration-500">
         <div className="container mx-auto px-4">
           <ScrollReveal>
             <div className="text-center mb-14">

@@ -371,8 +371,10 @@ const Index = () => {
         </div>
       </section>
 
+      <div className="h-24 md:h-32 section-divider-dark" />
+
       {/* About Preview - Dark */}
-      <section className="section-gap bg-background text-foreground transition-colors duration-500">
+      <section className="py-16 md:py-24 bg-background text-foreground transition-colors duration-500">
         <div className="container mx-auto px-4">
           <div className="grid md:grid-cols-2 gap-16 items-center">
             <ScrollReveal direction="left">

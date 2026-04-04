@@ -1,11 +1,15 @@
 import { MapPin, Phone, Mail, Instagram, Facebook } from "lucide-react";
 import { Link } from "react-router-dom";
+import logo from "@/assets/logo.jpg";
 
 const Footer = () => (
   <footer className="border-t border-border bg-card/50 pb-20 md:pb-0">
     <div className="container mx-auto px-4 py-16 grid grid-cols-1 md:grid-cols-3 gap-10">
       <div>
-        <h3 className="text-2xl font-heading font-bold text-gradient mb-4">Global Enterprises</h3>
+        <div className="flex items-center gap-3 mb-4">
+          <img src={logo} alt="Global Enterprises" className="w-12 h-12 rounded-full object-cover border border-primary/20 shadow-md" />
+          <h3 className="text-2xl font-heading font-bold text-gradient">Global Enterprises</h3>
+        </div>
         <p className="text-sm text-muted-foreground leading-relaxed">Premium electronics store in Jabalpur, Madhya Pradesh. Trusted since 2010.</p>
       </div>
       <div>

@@ -1,4 +1,5 @@
-import { motion, useScroll, useTransform } from "framer-motion";
+import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 import { ArrowRight, Shield, Truck, HeadphonesIcon, Award, Star, Instagram, Youtube, Quote } from "lucide-react";
 import { Link } from "react-router-dom";
 import { getProducts } from "@/data/products";
@@ -20,72 +21,50 @@ const reviews = [
   { name: "Sneha Gupta", rating: 4, text: "Great collection of laptops and accessories. Fast delivery within Jabalpur. Highly recommended!", avatar: "SG" },
 ];
 
-const instagramReels = [
-  { id: 1, title: "Unboxing HP Pavilion 2024", thumbnail: "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=300&h=400&fit=crop" },
-  { id: 2, title: "Dell vs Lenovo Comparison", thumbnail: "https://images.unsplash.com/photo-1525547719571-a2d4ac8945e2?w=300&h=400&fit=crop" },
-  { id: 3, title: "Best Gaming Laptops Under 60K", thumbnail: "https://images.unsplash.com/photo-1603302576837-37561b2e2302?w=300&h=400&fit=crop" },
-  { id: 4, title: "MacBook Air M3 Review", thumbnail: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=300&h=400&fit=crop" },
+const defaultInstagramReels = [
+  { id: 1, title: "Unboxing HP Pavilion 2024", thumbnail: "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=300&h=400&fit=crop", link: "" },
+  { id: 2, title: "Dell vs Lenovo Comparison", thumbnail: "https://images.unsplash.com/photo-1525547719571-a2d4ac8945e2?w=300&h=400&fit=crop", link: "" },
+  { id: 3, title: "Best Gaming Laptops Under 60K", thumbnail: "https://images.unsplash.com/photo-1603302576837-37561b2e2302?w=300&h=400&fit=crop", link: "" },
+  { id: 4, title: "MacBook Air M3 Review", thumbnail: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=300&h=400&fit=crop", link: "" },
 ];
 
 const Index = () => {
   const products = getProducts();
   const featured = products.filter((p) => p.featured).slice(0, 4);
-  const { scrollYProgress } = useScroll();
 
-  const bgColor = useTransform(
-    scrollYProgress,
-    [0, 0.15, 0.3, 0.5, 0.7, 0.85, 1],
-    [
-      "hsl(220, 20%, 7%)",
-      "hsl(220, 15%, 12%)",
-      "hsl(220, 10%, 20%)",
-      "hsl(40, 15%, 90%)",
-      "hsl(40, 18%, 95%)",
-      "hsl(40, 15%, 90%)",
-      "hsl(220, 20%, 7%)",
-    ]
-  );
+  // Load admin-managed reels & videos from localStorage
+  const [reelLinks, setReelLinks] = useState<string[]>([]);
+  const [videoLinks, setVideoLinks] = useState<string[]>([]);
+  const [channelLinks, setChannelLinks] = useState({ instagram: "", youtube: "" });
 
-  const textColor = useTransform(
-    scrollYProgress,
-    [0, 0.3, 0.5, 0.7, 1],
-    [
-      "hsl(210, 40%, 98%)",
-      "hsl(210, 40%, 98%)",
-      "hsl(220, 20%, 12%)",
-      "hsl(220, 20%, 12%)",
-      "hsl(210, 40%, 98%)",
-    ]
-  );
+  useEffect(() => {
+    const storedReels = localStorage.getItem("ge-instagram-reels");
+    if (storedReels) setReelLinks(JSON.parse(storedReels));
+    const storedVideos = localStorage.getItem("ge-youtube-videos");
+    if (storedVideos) setVideoLinks(JSON.parse(storedVideos));
+    const storedChannels = localStorage.getItem("ge-channel-links");
+    if (storedChannels) setChannelLinks(JSON.parse(storedChannels));
+  }, []);
 
-  const mutedTextColor = useTransform(
-    scrollYProgress,
-    [0, 0.3, 0.5, 0.7, 1],
-    [
-      "hsl(215, 20%, 65%)",
-      "hsl(215, 20%, 65%)",
-      "hsl(215, 15%, 45%)",
-      "hsl(215, 15%, 45%)",
-      "hsl(215, 20%, 65%)",
-    ]
-  );
+  const getYouTubeEmbedUrl = (url: string) => {
+    const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([\w-]+)/);
+    return match ? `https://www.youtube.com/embed/${match[1]}` : url;
+  };
 
-  const cardBg = useTransform(
-    scrollYProgress,
-    [0, 0.3, 0.5, 0.7, 1],
-    [
-      "hsla(220, 18%, 13%, 0.8)",
-      "hsla(220, 18%, 13%, 0.8)",
-      "hsla(0, 0%, 100%, 0.7)",
-      "hsla(0, 0%, 100%, 0.7)",
-      "hsla(220, 18%, 13%, 0.8)",
-    ]
-  );
+  const getInstagramEmbedId = (url: string) => {
+    const match = url.match(/instagram\.com\/(?:reel|p)\/([\w-]+)/);
+    return match ? match[1] : null;
+  };
+
+  const displayVideos = videoLinks.length > 0 ? videoLinks : [
+    "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+    "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+  ];
 
   return (
-    <motion.div className="min-h-screen" style={{ backgroundColor: bgColor, color: textColor }}>
-      {/* Hero */}
-      <section className="relative min-h-screen flex items-center overflow-hidden">
+    <div className="min-h-screen">
+      {/* Hero - Dark */}
+      <section className="relative min-h-screen flex items-center overflow-hidden bg-background text-foreground">
         <div className="absolute inset-0 bg-gradient-to-br from-background via-background to-primary/5" />
         <div className="absolute inset-0">
           {[...Array(3)].map((_, i) => (
@@ -171,8 +150,8 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Featured Products */}
-      <section className="section-gap relative">
+      {/* Featured Products - Light */}
+      <section className="section-gap bg-light-section text-light-section-fg transition-colors duration-500">
         <div className="container mx-auto px-4">
           <ScrollReveal>
             <div className="flex items-end justify-between mb-14">
@@ -187,14 +166,14 @@ const Index = () => {
           </ScrollReveal>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
             {featured.map((product, i) => (
-              <ProductCard key={product.id} product={product} index={i} />
+              <ProductCard key={product.id} product={product} index={i} variant="light" />
             ))}
           </div>
         </div>
       </section>
 
-      {/* Why Choose Us */}
-      <section className="section-gap">
+      {/* Why Choose Us - Dark */}
+      <section className="section-gap bg-background text-foreground transition-colors duration-500">
         <div className="container mx-auto px-4">
           <ScrollReveal>
             <div className="text-center mb-14">
@@ -209,13 +188,12 @@ const Index = () => {
                   whileHover={{ y: -8, scale: 1.02 }}
                   transition={{ type: "spring", stiffness: 300 }}
                   className="glass-card p-8 text-center space-y-4"
-                  style={{ backgroundColor: cardBg }}
                 >
                   <div className="mx-auto w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center">
                     <feat.icon className="w-7 h-7 text-primary" />
                   </div>
                   <h3 className="font-heading font-bold text-lg">{feat.title}</h3>
-                  <p className="text-sm" style={{ color: "hsl(var(--muted-foreground))" }}>{feat.desc}</p>
+                  <p className="text-sm text-muted-foreground">{feat.desc}</p>
                 </motion.div>
               </ScrollReveal>
             ))}
@@ -223,8 +201,8 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Customer Reviews */}
-      <section className="section-gap">
+      {/* Customer Reviews - Light */}
+      <section className="section-gap bg-light-section text-light-section-fg transition-colors duration-500">
         <div className="container mx-auto px-4">
           <ScrollReveal>
             <div className="text-center mb-14">
@@ -237,17 +215,16 @@ const Index = () => {
               <ScrollReveal key={review.name} delay={i * 0.1}>
                 <motion.div
                   whileHover={{ y: -5, scale: 1.02 }}
-                  className="glass-card p-7 space-y-4 h-full"
-                  style={{ backgroundColor: cardBg }}
+                  className="bg-white/80 backdrop-blur-sm border border-gray-200 rounded-2xl p-7 space-y-4 h-full shadow-sm hover:shadow-lg transition-shadow duration-300"
                 >
                   <Quote className="w-8 h-8 text-primary/30" />
-                  <p className="text-sm leading-relaxed" style={{ color: "hsl(var(--muted-foreground))" }}>{review.text}</p>
+                  <p className="text-sm leading-relaxed text-gray-600">{review.text}</p>
                   <div className="flex items-center gap-3 pt-2">
                     <div className="w-11 h-11 rounded-full bg-primary/20 flex items-center justify-center text-sm font-bold text-primary">
                       {review.avatar}
                     </div>
                     <div>
-                      <p className="text-sm font-heading font-bold">{review.name}</p>
+                      <p className="text-sm font-heading font-bold text-gray-900">{review.name}</p>
                       <div className="flex gap-0.5">
                         {[...Array(review.rating)].map((_, j) => (
                           <Star key={j} className="w-3 h-3 fill-primary text-primary" />
@@ -262,8 +239,8 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Instagram Reels */}
-      <section className="section-gap">
+      {/* Instagram Reels - Dark */}
+      <section className="section-gap bg-background text-foreground transition-colors duration-500">
         <div className="container mx-auto px-4">
           <ScrollReveal>
             <div className="text-center mb-14">
@@ -272,39 +249,77 @@ const Index = () => {
                 <p className="text-pink-400 text-sm font-medium tracking-wider">INSTAGRAM</p>
               </div>
               <h2 className="text-3xl md:text-5xl font-heading font-bold">Latest Reels & Updates</h2>
-              <p className="mt-3" style={{ color: "hsl(var(--muted-foreground))" }}>
-                Follow us <a href="https://instagram.com/globalenterprises" target="_blank" rel="noopener noreferrer" className="text-pink-400 hover:underline">@globalenterprises</a>
+              <p className="mt-3 text-muted-foreground">
+                Follow us{" "}
+                <a
+                  href={channelLinks.instagram || "https://instagram.com/globalenterprises"}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-pink-400 hover:underline"
+                >
+                  @globalenterprises
+                </a>
               </p>
             </div>
           </ScrollReveal>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-            {instagramReels.map((reel, i) => (
-              <ScrollReveal key={reel.id} delay={i * 0.1}>
-                <motion.a
-                  href="https://instagram.com/globalenterprises"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  whileHover={{ scale: 1.05 }}
-                  className="relative block rounded-2xl overflow-hidden group aspect-[3/4]"
-                >
-                  <img src={reel.thumbnail} alt={reel.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-transparent to-transparent" />
-                  <div className="absolute bottom-0 left-0 right-0 p-4">
-                    <p className="text-xs font-heading font-bold line-clamp-2 text-foreground">{reel.title}</p>
-                    <div className="flex items-center gap-1 mt-1.5">
-                      <Instagram className="w-3 h-3 text-pink-400" />
-                      <span className="text-[10px] text-muted-foreground">Reel</span>
+          {reelLinks.length > 0 ? (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+              {reelLinks.map((link, i) => {
+                const embedId = getInstagramEmbedId(link);
+                return (
+                  <ScrollReveal key={i} delay={i * 0.1}>
+                    <motion.a
+                      href={link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      whileHover={{ scale: 1.05 }}
+                      className="relative block rounded-2xl overflow-hidden group aspect-[3/4] glass-card"
+                    >
+                      <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-pink-500/20 to-purple-500/20">
+                        <Instagram className="w-10 h-10 text-pink-400" />
+                      </div>
+                      <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-background/90 to-transparent">
+                        <p className="text-xs font-heading font-bold line-clamp-2 text-foreground">Reel {i + 1}</p>
+                        <div className="flex items-center gap-1 mt-1.5">
+                          <Instagram className="w-3 h-3 text-pink-400" />
+                          <span className="text-[10px] text-muted-foreground">View on Instagram</span>
+                        </div>
+                      </div>
+                    </motion.a>
+                  </ScrollReveal>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+              {defaultInstagramReels.map((reel, i) => (
+                <ScrollReveal key={reel.id} delay={i * 0.1}>
+                  <motion.a
+                    href={channelLinks.instagram || "https://instagram.com/globalenterprises"}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    whileHover={{ scale: 1.05 }}
+                    className="relative block rounded-2xl overflow-hidden group aspect-[3/4]"
+                  >
+                    <img src={reel.thumbnail} alt={reel.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-transparent to-transparent" />
+                    <div className="absolute bottom-0 left-0 right-0 p-4">
+                      <p className="text-xs font-heading font-bold line-clamp-2 text-foreground">{reel.title}</p>
+                      <div className="flex items-center gap-1 mt-1.5">
+                        <Instagram className="w-3 h-3 text-pink-400" />
+                        <span className="text-[10px] text-muted-foreground">Reel</span>
+                      </div>
                     </div>
-                  </div>
-                </motion.a>
-              </ScrollReveal>
-            ))}
-          </div>
+                  </motion.a>
+                </ScrollReveal>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
-      {/* YouTube Section */}
-      <section className="section-gap">
+      {/* YouTube Section - Light */}
+      <section className="section-gap bg-light-section text-light-section-fg transition-colors duration-500">
         <div className="container mx-auto px-4">
           <ScrollReveal>
             <div className="text-center mb-14">
@@ -313,50 +328,49 @@ const Index = () => {
                 <p className="text-red-500 text-sm font-medium tracking-wider">YOUTUBE</p>
               </div>
               <h2 className="text-3xl md:text-5xl font-heading font-bold">Watch Our Reviews</h2>
-              <p className="mt-3" style={{ color: "hsl(var(--muted-foreground))" }}>
-                Subscribe to our <a href="https://youtube.com/@globalenterprises" target="_blank" rel="noopener noreferrer" className="text-red-500 hover:underline">YouTube Channel</a>
+              <p className="mt-3 text-gray-500">
+                Subscribe to our{" "}
+                <a
+                  href={channelLinks.youtube || "https://youtube.com/@globalenterprises"}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-red-500 hover:underline"
+                >
+                  YouTube Channel
+                </a>
               </p>
             </div>
           </ScrollReveal>
           <div className="grid md:grid-cols-2 gap-6 md:gap-8 max-w-4xl mx-auto">
-            <ScrollReveal direction="left">
-              <motion.div className="glass-card overflow-hidden rounded-2xl aspect-video" style={{ backgroundColor: cardBg }}>
-                <iframe
-                  src="https://www.youtube.com/embed/dQw4w9WgXcQ"
-                  title="Product Review"
-                  className="w-full h-full"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                />
-              </motion.div>
-            </ScrollReveal>
-            <ScrollReveal direction="right">
-              <motion.div className="glass-card overflow-hidden rounded-2xl aspect-video" style={{ backgroundColor: cardBg }}>
-                <iframe
-                  src="https://www.youtube.com/embed/dQw4w9WgXcQ"
-                  title="Laptop Comparison"
-                  className="w-full h-full"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                />
-              </motion.div>
-            </ScrollReveal>
+            {displayVideos.slice(0, 4).map((url, i) => (
+              <ScrollReveal key={i} direction={i % 2 === 0 ? "left" : "right"}>
+                <div className="bg-white/80 backdrop-blur-sm border border-gray-200 rounded-2xl overflow-hidden aspect-video shadow-sm hover:shadow-lg transition-shadow duration-300">
+                  <iframe
+                    src={getYouTubeEmbedUrl(url)}
+                    title={`Video ${i + 1}`}
+                    className="w-full h-full"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  />
+                </div>
+              </ScrollReveal>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* About Preview */}
-      <section className="section-gap">
+      {/* About Preview - Dark */}
+      <section className="section-gap bg-background text-foreground transition-colors duration-500">
         <div className="container mx-auto px-4">
           <div className="grid md:grid-cols-2 gap-16 items-center">
             <ScrollReveal direction="left">
-              <motion.div className="glass-card p-1.5 rounded-3xl overflow-hidden" style={{ backgroundColor: cardBg }}>
+              <div className="glass-card p-1.5 rounded-3xl overflow-hidden">
                 <img
                   src="https://images.unsplash.com/photo-1531297484001-80022131f5a1?w=600"
                   alt="Our Store"
                   className="w-full h-72 md:h-[450px] object-cover rounded-2xl"
                 />
-              </motion.div>
+              </div>
             </ScrollReveal>
             <ScrollReveal direction="right">
               <div className="space-y-6">
@@ -364,7 +378,7 @@ const Index = () => {
                 <h2 className="text-3xl md:text-5xl font-heading font-bold leading-tight">
                   Trusted by <span className="text-gradient">Thousands</span> in Jabalpur
                 </h2>
-                <p className="text-lg leading-relaxed" style={{ color: "hsl(var(--muted-foreground))" }}>
+                <p className="text-lg leading-relaxed text-muted-foreground">
                   Since 2010, Global Enterprises has been Jabalpur's go-to destination for premium electronics. We bring you genuine products from top brands with expert guidance and after-sales support.
                 </p>
                 <Link to="/about" className="btn-outline-premium inline-flex items-center gap-2">
@@ -376,33 +390,33 @@ const Index = () => {
         </div>
       </section>
 
-      {/* WhatsApp CTA */}
-      <section className="section-gap">
+      {/* WhatsApp CTA - Light */}
+      <section className="section-gap bg-light-section text-light-section-fg transition-colors duration-500">
         <div className="container mx-auto px-4">
           <ScrollReveal>
-            <motion.div className="glass-card p-10 md:p-16 text-center rounded-3xl" style={{ backgroundColor: cardBg }}>
+            <div className="bg-white/80 backdrop-blur-sm border border-gray-200 rounded-3xl p-10 md:p-16 text-center shadow-sm">
               <h2 className="text-3xl md:text-5xl font-heading font-bold mb-6">
                 Need Help Choosing?
               </h2>
-              <p className="text-lg mb-8 max-w-lg mx-auto" style={{ color: "hsl(var(--muted-foreground))" }}>
+              <p className="text-lg mb-8 max-w-lg mx-auto text-gray-500">
                 Chat with our experts on WhatsApp and get personalized recommendations instantly.
               </p>
               <a
                 href="https://wa.me/919876543210"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="btn-premium inline-flex items-center gap-2 bg-accent"
+                className="btn-premium inline-flex items-center gap-2"
               >
                 💬 Chat on WhatsApp
               </a>
-            </motion.div>
+            </div>
           </ScrollReveal>
         </div>
       </section>
 
       {/* Bottom spacer for mobile nav */}
       <div className="h-16 md:hidden" />
-    </motion.div>
+    </div>
   );
 };
 

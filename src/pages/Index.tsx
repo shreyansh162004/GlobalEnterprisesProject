@@ -404,8 +404,10 @@ const Index = () => {
         </div>
       </section>
 
+      <div className="h-24 md:h-32 section-divider-light" />
+
       {/* WhatsApp CTA - Light */}
-      <section className="section-gap bg-light-section text-light-section-fg transition-colors duration-500">
+      <section className="py-16 md:py-24 bg-light-section text-light-section-fg transition-colors duration-500">
         <div className="container mx-auto px-4">
           <ScrollReveal>
             <div className="bg-white/80 backdrop-blur-sm border border-gray-200 rounded-3xl p-10 md:p-16 text-center shadow-sm">

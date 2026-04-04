@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { ShoppingCart, Menu, X, Home, Package, Info, Phone, Search } from "lucide-react";
+import { ShoppingCart, Menu, X, Home, Package, Info, Phone } from "lucide-react";
 import { getCart } from "@/data/cart";
 import logo from "@/assets/logo.jpg";
 
@@ -39,11 +39,10 @@ const Navbar = ({ onCartOpen }: NavbarProps) => {
 
   return (
     <>
-      {/* Desktop + Top mobile navbar */}
       <motion.nav
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
           scrolled
-            ? "bg-card/95 backdrop-blur-xl border-b border-border shadow-lg shadow-primary/5"
+            ? "bg-background/60 backdrop-blur-2xl border-b border-border/40 shadow-[0_4px_30px_rgba(0,0,0,0.15)]"
             : "bg-transparent"
         }`}
         initial={{ y: -100 }}
@@ -51,41 +50,48 @@ const Navbar = ({ onCartOpen }: NavbarProps) => {
         transition={{ duration: 0.6 }}
       >
         <div className="container mx-auto px-4 flex items-center justify-between h-16 md:h-20">
-          <Link to="/" className="flex items-center gap-3 group">
+          {/* Logo */}
+          <Link to="/" className="flex items-center gap-2.5 group">
             <motion.img
               src={logo}
               alt="Global Enterprises"
-              className="w-10 h-10 rounded-full object-cover border border-primary/20 shadow-md shadow-primary/10"
+              className="w-9 h-9 md:w-10 md:h-10 rounded-full object-cover border border-primary/20 shadow-md shadow-primary/10"
               whileHover={{ scale: 1.1, rotate: 5 }}
               transition={{ type: "spring", stiffness: 300 }}
             />
             <div className="flex flex-col">
-              <span className="text-lg md:text-xl font-heading font-bold text-gradient leading-tight">Global</span>
-              <span className="text-[10px] font-body text-muted-foreground tracking-[0.2em] uppercase hidden sm:inline">Enterprises</span>
+              <span className="text-base md:text-lg font-heading font-bold text-gradient leading-tight">Global</span>
+              <span className="text-[9px] md:text-[10px] font-body text-muted-foreground tracking-[0.15em] uppercase">Enterprises</span>
             </div>
           </Link>
 
-          {/* Desktop nav links */}
-          <div className="hidden md:flex items-center gap-1">
-            {links.map((link) => {
-              const active = location.pathname === link.to;
-              return (
-                <Link key={link.to} to={link.to} className="relative px-5 py-2.5 text-sm font-medium transition-colors hover:text-primary">
-                  {active && (
-                    <motion.span
-                      layoutId="nav-pill"
-                      className="absolute inset-0 rounded-full bg-primary/10 border border-primary/20"
-                      transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                    />
-                  )}
-                  <span className="relative z-10">{link.label}</span>
-                </Link>
-              );
-            })}
+          {/* Desktop nav - Oval pill */}
+          <div className="hidden md:flex items-center">
+            <div className="flex items-center gap-0.5 bg-white/[0.06] backdrop-blur-xl border border-white/[0.08] rounded-full px-1.5 py-1.5">
+              {links.map((link) => {
+                const active = location.pathname === link.to;
+                return (
+                  <Link
+                    key={link.to}
+                    to={link.to}
+                    className="relative px-5 py-2 text-sm font-medium transition-colors hover:text-primary"
+                  >
+                    {active && (
+                      <motion.span
+                        layoutId="nav-pill"
+                        className="absolute inset-0 rounded-full bg-primary/15 border border-primary/25 shadow-[0_0_12px_hsl(var(--primary)/0.15)]"
+                        transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                      />
+                    )}
+                    <span className="relative z-10">{link.label}</span>
+                  </Link>
+                );
+              })}
+            </div>
           </div>
 
           <div className="flex items-center gap-3">
-            <button onClick={onCartOpen} className="relative p-2.5 rounded-full hover:bg-secondary transition-colors">
+            <button onClick={onCartOpen} className="relative p-2.5 rounded-full hover:bg-white/[0.06] transition-colors">
               <ShoppingCart className="w-5 h-5" />
               {cartCount > 0 && (
                 <motion.span
@@ -103,14 +109,14 @@ const Navbar = ({ onCartOpen }: NavbarProps) => {
           </div>
         </div>
 
-        {/* Mobile dropdown menu */}
+        {/* Mobile dropdown */}
         <AnimatePresence>
           {mobileOpen && (
             <motion.div
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
-              className="md:hidden bg-card/98 backdrop-blur-xl border-b border-border overflow-hidden"
+              className="md:hidden bg-background/95 backdrop-blur-2xl border-b border-border/40 overflow-hidden"
             >
               <div className="container mx-auto px-4 py-4 flex flex-col gap-1">
                 {links.map((link) => (
@@ -131,8 +137,8 @@ const Navbar = ({ onCartOpen }: NavbarProps) => {
         </AnimatePresence>
       </motion.nav>
 
-      {/* Mobile bottom navigation bar */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-xl border-t border-border safe-area-bottom">
+      {/* Mobile bottom navigation */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-background/90 backdrop-blur-2xl border-t border-border/40 safe-area-bottom">
         <div className="flex items-center justify-around py-2 px-2">
           {links.map((link) => {
             const active = location.pathname === link.to;

@@ -1,21 +1,15 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, ArrowRight, Send } from "lucide-react";
+import { X, ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { getProducts } from "@/data/products";
 
-type Step = "lang" | "budget" | "usage" | "brand" | "done";
+type Step = "lang" | "usage" | "brand" | "budget" | "done";
 
 interface ChatMessage {
   from: "bot" | "user";
   text: string;
 }
-
-const budgets = [
-  { label: "₹20K – ₹40K", min: 20000, max: 40000 },
-  { label: "₹40K – ₹70K", min: 40000, max: 70000 },
-  { label: "₹70K – ₹1L", min: 70000, max: 100000 },
-  { label: "₹1L+", min: 100000, max: 999999 },
-];
 
 const usages = ["🎮 Gaming", "📚 Study", "💼 Office", "🎬 Editing"];
 const brandsList = ["HP", "Dell", "Lenovo", "Apple", "Asus", "Acer", "MSI", "Any"];
@@ -26,12 +20,45 @@ const Chatbot = () => {
   const [lang, setLang] = useState<"en" | "hi">("en");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [typing, setTyping] = useState(false);
-  const [selectedBudget, setSelectedBudget] = useState<typeof budgets[0] | null>(null);
+  const [selectedBrand, setSelectedBrand] = useState<string | null>(null);
   const [bubbleVisible, setBubbleVisible] = useState(true);
   const navigate = useNavigate();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const t = (en: string, hi: string) => (lang === "hi" ? hi : en);
+
+  // Generate dynamic price ranges from product data
+  const dynamicBudgets = useMemo(() => {
+    const products = getProducts();
+    if (products.length === 0) return [{ label: "Any Price", min: 0, max: 999999 }];
+
+    const prices = products.map((p) => p.price).sort((a, b) => a - b);
+    const minPrice = prices[0];
+    const maxPrice = prices[prices.length - 1];
+
+    // Create smart ranges based on actual stock
+    const ranges: { label: string; min: number; max: number }[] = [];
+    const step = Math.ceil((maxPrice - minPrice) / 4 / 5000) * 5000; // round to 5K increments
+
+    let current = Math.floor(minPrice / 5000) * 5000;
+    for (let i = 0; i < 4; i++) {
+      const rangeMin = current;
+      const rangeMax = i === 3 ? 999999 : current + step;
+      const count = products.filter((p) => p.price >= rangeMin && p.price < rangeMax).length;
+
+      if (count > 0 || i === 3) {
+        const formatPrice = (v: number) => {
+          if (v >= 100000) return `₹${(v / 100000).toFixed(v % 100000 === 0 ? 0 : 1)}L`;
+          if (v >= 1000) return `₹${(v / 1000).toFixed(0)}K`;
+          return `₹${v}`;
+        };
+        const label = i === 3 ? `${formatPrice(rangeMin)}+` : `${formatPrice(rangeMin)} – ${formatPrice(rangeMax)}`;
+        ranges.push({ label: `${label} (${count})`, min: rangeMin, max: rangeMax });
+      }
+      current += step;
+    }
+    return ranges.length > 0 ? ranges : [{ label: "Any Price", min: 0, max: 999999 }];
+  }, []);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -41,11 +68,8 @@ const Chatbot = () => {
     scrollToBottom();
   }, [messages, typing]);
 
-  // Toggle bubble text visibility
   useEffect(() => {
-    const interval = setInterval(() => {
-      setBubbleVisible(v => !v);
-    }, 4000);
+    const interval = setInterval(() => setBubbleVisible((v) => !v), 4000);
     return () => clearInterval(interval);
   }, []);
 
@@ -53,19 +77,19 @@ const Chatbot = () => {
     setTyping(true);
     setTimeout(() => {
       setTyping(false);
-      setMessages(prev => [...prev, { from: "bot", text }]);
+      setMessages((prev) => [...prev, { from: "bot", text }]);
       callback?.();
     }, 800);
   };
 
   const addUserMsg = (text: string) => {
-    setMessages(prev => [...prev, { from: "user", text }]);
+    setMessages((prev) => [...prev, { from: "user", text }]);
   };
 
   const reset = () => {
     setStep("lang");
     setMessages([]);
-    setSelectedBudget(null);
+    setSelectedBrand(null);
     setTyping(false);
   };
 
@@ -82,18 +106,7 @@ const Chatbot = () => {
     addUserMsg(l === "en" ? "English" : "हिंदी");
     setTimeout(() => {
       addBotMsg(
-        l === "en" ? "Great! What's your budget range? 💰" : "बढ़िया! आपका बजट क्या है? 💰",
-        () => setStep("budget")
-      );
-    }, 300);
-  };
-
-  const chooseBudget = (b: typeof budgets[0]) => {
-    setSelectedBudget(b);
-    addUserMsg(b.label);
-    setTimeout(() => {
-      addBotMsg(
-        t("What will you use it for? 🤔", "आप इसे किसलिए इस्तेमाल करेंगे? 🤔"),
+        l === "en" ? "What will you use it for? 🤔" : "आप इसे किसलिए इस्तेमाल करेंगे? 🤔",
         () => setStep("usage")
       );
     }, 300);
@@ -110,7 +123,18 @@ const Chatbot = () => {
   };
 
   const chooseBrand = (brand: string) => {
+    setSelectedBrand(brand === "Any" ? null : brand);
     addUserMsg(brand);
+    setTimeout(() => {
+      addBotMsg(
+        t("What's your budget range? 💰\n(Based on our current stock)", "आपका बजट क्या है? 💰\n(हमारे मौजूदा स्टॉक के आधार पर)"),
+        () => setStep("budget")
+      );
+    }, 300);
+  };
+
+  const chooseBudget = (b: { min: number; max: number; label: string }) => {
+    addUserMsg(b.label);
     setTimeout(() => {
       addBotMsg(
         t("Perfect! Finding the best options for you! 🚀", "बढ़िया! आपके लिए बेस्ट ऑप्शन ढूंढता हूँ! 🚀"),
@@ -118,11 +142,9 @@ const Chatbot = () => {
           setStep("done");
           setTimeout(() => {
             const params = new URLSearchParams();
-            if (selectedBudget) {
-              params.set("minPrice", selectedBudget.min.toString());
-              params.set("maxPrice", selectedBudget.max.toString());
-            }
-            if (brand !== "Any") params.set("brand", brand);
+            params.set("minPrice", b.min.toString());
+            params.set("maxPrice", b.max.toString());
+            if (selectedBrand) params.set("brand", selectedBrand);
             navigate(`/products?${params.toString()}`);
             setOpen(false);
           }, 1200);
@@ -133,9 +155,8 @@ const Chatbot = () => {
 
   return (
     <>
-      {/* Floating button with pulsing glow */}
+      {/* Floating button */}
       <div className="fixed bottom-20 md:bottom-6 right-4 md:right-6 z-40 flex flex-col items-end gap-2">
-        {/* Animated text bubble */}
         <AnimatePresence>
           {!open && bubbleVisible && (
             <motion.div
@@ -170,7 +191,6 @@ const Chatbot = () => {
       <AnimatePresence>
         {open && (
           <>
-            {/* Backdrop on mobile */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -202,7 +222,7 @@ const Chatbot = () => {
                 </button>
               </div>
 
-              {/* Messages area */}
+              {/* Messages */}
               <div className="flex-1 overflow-y-auto p-4 space-y-3 scrollbar-hide">
                 {messages.map((msg, i) => (
                   <motion.div
@@ -224,13 +244,8 @@ const Chatbot = () => {
                   </motion.div>
                 ))}
 
-                {/* Typing indicator */}
                 {typing && (
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="flex justify-start"
-                  >
+                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex justify-start">
                     <div className="bg-secondary rounded-2xl rounded-bl-md px-4 py-3 flex gap-1.5">
                       <span className="w-2 h-2 bg-muted-foreground/60 rounded-full animate-bounce-subtle" style={{ animationDelay: "0ms" }} />
                       <span className="w-2 h-2 bg-muted-foreground/60 rounded-full animate-bounce-subtle" style={{ animationDelay: "150ms" }} />
@@ -241,19 +256,12 @@ const Chatbot = () => {
                 <div ref={messagesEndRef} />
               </div>
 
-              {/* Quick reply options */}
+              {/* Quick replies */}
               <div className="p-4 border-t border-border space-y-2 bg-card/95">
                 {step === "lang" && !typing && messages.length > 0 && (
                   <div className="flex gap-2">
                     <QuickReplyBtn label="🇬🇧 English" onClick={() => chooseLang("en")} />
                     <QuickReplyBtn label="🇮🇳 हिंदी" onClick={() => chooseLang("hi")} />
-                  </div>
-                )}
-                {step === "budget" && !typing && (
-                  <div className="grid grid-cols-2 gap-2">
-                    {budgets.map((b) => (
-                      <QuickReplyBtn key={b.label} label={b.label} onClick={() => chooseBudget(b)} />
-                    ))}
                   </div>
                 )}
                 {step === "usage" && !typing && (
@@ -267,6 +275,13 @@ const Chatbot = () => {
                   <div className="grid grid-cols-4 gap-1.5">
                     {brandsList.map((b) => (
                       <QuickReplyBtn key={b} label={b} onClick={() => chooseBrand(b)} small />
+                    ))}
+                  </div>
+                )}
+                {step === "budget" && !typing && (
+                  <div className="grid grid-cols-2 gap-2">
+                    {dynamicBudgets.map((b) => (
+                      <QuickReplyBtn key={b.label} label={b.label} onClick={() => chooseBudget(b)} />
                     ))}
                   </div>
                 )}

@@ -320,7 +320,7 @@ const Index = () => {
           </ScrollReveal>
           <div className="grid md:grid-cols-2 gap-6 md:gap-8 max-w-4xl mx-auto">
             <ScrollReveal direction="left">
-              <div className="glass-card overflow-hidden rounded-2xl aspect-video" style={{ backgroundColor: cardBg }}>
+              <motion.div className="glass-card overflow-hidden rounded-2xl aspect-video" style={{ backgroundColor: cardBg }}>
                 <iframe
                   src="https://www.youtube.com/embed/dQw4w9WgXcQ"
                   title="Product Review"
@@ -328,10 +328,10 @@ const Index = () => {
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
                 />
-              </div>
+              </motion.div>
             </ScrollReveal>
             <ScrollReveal direction="right">
-              <div className="glass-card overflow-hidden rounded-2xl aspect-video" style={{ backgroundColor: cardBg }}>
+              <motion.div className="glass-card overflow-hidden rounded-2xl aspect-video" style={{ backgroundColor: cardBg }}>
                 <iframe
                   src="https://www.youtube.com/embed/dQw4w9WgXcQ"
                   title="Laptop Comparison"

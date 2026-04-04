@@ -51,8 +51,14 @@ const Navbar = ({ onCartOpen }: NavbarProps) => {
         transition={{ duration: 0.6 }}
       >
         <div className="container mx-auto px-4 flex items-center justify-between h-16 md:h-20">
-          <Link to="/" className="flex items-center gap-3">
-            <img src={logo} alt="Global Enterprises" className="w-10 h-10 rounded-full object-cover border border-primary/20" />
+          <Link to="/" className="flex items-center gap-3 group">
+            <motion.img
+              src={logo}
+              alt="Global Enterprises"
+              className="w-10 h-10 rounded-full object-cover border border-primary/20 shadow-md shadow-primary/10"
+              whileHover={{ scale: 1.1, rotate: 5 }}
+              transition={{ type: "spring", stiffness: 300 }}
+            />
             <div className="flex flex-col">
               <span className="text-lg md:text-xl font-heading font-bold text-gradient leading-tight">Global</span>
               <span className="text-[10px] font-body text-muted-foreground tracking-[0.2em] uppercase hidden sm:inline">Enterprises</span>

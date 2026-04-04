@@ -395,7 +395,7 @@ const Index = () => {
               >
                 💬 Chat on WhatsApp
               </a>
-            </div>
+            </motion.div>
           </ScrollReveal>
         </div>
       </section>

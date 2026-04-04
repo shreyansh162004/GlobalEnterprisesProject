@@ -150,8 +150,11 @@ const Index = () => {
         </div>
       </section>
 
+      {/* Gradient transition dark → light */}
+      <div className="h-24 md:h-32 section-divider-light" />
+
       {/* Featured Products - Light */}
-      <section className="section-gap bg-light-section text-light-section-fg transition-colors duration-500">
+      <section className="py-16 md:py-24 bg-light-section text-light-section-fg transition-colors duration-500">
         <div className="container mx-auto px-4">
           <ScrollReveal>
             <div className="flex items-end justify-between mb-14">
@@ -172,8 +175,11 @@ const Index = () => {
         </div>
       </section>
 
+      {/* Gradient transition light → dark */}
+      <div className="h-24 md:h-32 section-divider-dark" />
+
       {/* Why Choose Us - Dark */}
-      <section className="section-gap bg-background text-foreground transition-colors duration-500">
+      <section className="py-16 md:py-24 bg-background text-foreground transition-colors duration-500">
         <div className="container mx-auto px-4">
           <ScrollReveal>
             <div className="text-center mb-14">
@@ -201,8 +207,10 @@ const Index = () => {
         </div>
       </section>
 
+      <div className="h-24 md:h-32 section-divider-light" />
+
       {/* Customer Reviews - Light */}
-      <section className="section-gap bg-light-section text-light-section-fg transition-colors duration-500">
+      <section className="py-16 md:py-24 bg-light-section text-light-section-fg transition-colors duration-500">
         <div className="container mx-auto px-4">
           <ScrollReveal>
             <div className="text-center mb-14">
@@ -239,8 +247,10 @@ const Index = () => {
         </div>
       </section>
 
+      <div className="h-24 md:h-32 section-divider-dark" />
+
       {/* Instagram Reels - Dark */}
-      <section className="section-gap bg-background text-foreground transition-colors duration-500">
+      <section className="py-16 md:py-24 bg-background text-foreground transition-colors duration-500">
         <div className="container mx-auto px-4">
           <ScrollReveal>
             <div className="text-center mb-14">
@@ -318,8 +328,10 @@ const Index = () => {
         </div>
       </section>
 
+      <div className="h-24 md:h-32 section-divider-light" />
+
       {/* YouTube Section - Light */}
-      <section className="section-gap bg-light-section text-light-section-fg transition-colors duration-500">
+      <section className="py-16 md:py-24 bg-light-section text-light-section-fg transition-colors duration-500">
         <div className="container mx-auto px-4">
           <ScrollReveal>
             <div className="text-center mb-14">
@@ -359,8 +371,10 @@ const Index = () => {
         </div>
       </section>
 
+      <div className="h-24 md:h-32 section-divider-dark" />
+
       {/* About Preview - Dark */}
-      <section className="section-gap bg-background text-foreground transition-colors duration-500">
+      <section className="py-16 md:py-24 bg-background text-foreground transition-colors duration-500">
         <div className="container mx-auto px-4">
           <div className="grid md:grid-cols-2 gap-16 items-center">
             <ScrollReveal direction="left">
@@ -390,8 +404,10 @@ const Index = () => {
         </div>
       </section>
 
+      <div className="h-24 md:h-32 section-divider-light" />
+
       {/* WhatsApp CTA - Light */}
-      <section className="section-gap bg-light-section text-light-section-fg transition-colors duration-500">
+      <section className="py-16 md:py-24 bg-light-section text-light-section-fg transition-colors duration-500">
         <div className="container mx-auto px-4">
           <ScrollReveal>
             <div className="bg-white/80 backdrop-blur-sm border border-gray-200 rounded-3xl p-10 md:p-16 text-center shadow-sm">

@@ -1,13 +1,13 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { motion } from "framer-motion";
 import { getProducts, saveProducts, Product, brands, categories } from "@/data/products";
-import { Pencil, Trash2, Plus, LogIn, LogOut, Instagram, Youtube, Link2 } from "lucide-react";
+import { Pencil, Trash2, Plus, LogIn, LogOut, Instagram, Youtube, Link2, Upload, X, Image as ImageIcon, Globe } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
 const ADMIN_USER = "admin";
 const ADMIN_PASS = "global2024";
 
-type Tab = "products" | "reels" | "videos";
+type Tab = "products" | "reels" | "videos" | "channels";
 
 const Admin = () => {
   const [authenticated, setAuthenticated] = useState(false);
@@ -68,21 +68,8 @@ const Admin = () => {
       <div className="min-h-screen pt-24 flex items-center justify-center px-4">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="glass-card p-8 w-full max-w-sm space-y-5">
           <h1 className="text-2xl font-heading font-bold text-center">Admin Login</h1>
-          <input
-            type="text"
-            placeholder="Username"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            className="w-full px-4 py-3.5 rounded-xl bg-secondary border border-border text-sm focus:outline-none focus:border-primary transition-colors"
-          />
-          <input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleLogin()}
-            className="w-full px-4 py-3.5 rounded-xl bg-secondary border border-border text-sm focus:outline-none focus:border-primary transition-colors"
-          />
+          <input type="text" placeholder="Username" value={username} onChange={(e) => setUsername(e.target.value)} className="w-full px-4 py-3.5 rounded-xl bg-secondary border border-border text-sm focus:outline-none focus:border-primary transition-colors" />
+          <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleLogin()} className="w-full px-4 py-3.5 rounded-xl bg-secondary border border-border text-sm focus:outline-none focus:border-primary transition-colors" />
           <button onClick={handleLogin} className="btn-premium w-full flex items-center justify-center gap-2">
             <LogIn className="w-4 h-4" /> Login
           </button>
@@ -95,6 +82,7 @@ const Admin = () => {
     { id: "products", label: "Products", icon: Plus },
     { id: "reels", label: "Instagram Reels", icon: Instagram },
     { id: "videos", label: "YouTube Videos", icon: Youtube },
+    { id: "channels", label: "Channel Links", icon: Globe },
   ];
 
   return (
@@ -107,7 +95,6 @@ const Admin = () => {
           </button>
         </div>
 
-        {/* Tabs */}
         <div className="flex gap-2 mb-8 overflow-x-auto scrollbar-hide">
           {tabs.map((tab) => (
             <button
@@ -125,21 +112,12 @@ const Admin = () => {
 
         {activeTab === "products" && (
           <>
-            <button
-              onClick={() => { setEditing(null); setShowForm(true); }}
-              className="btn-premium flex items-center gap-2 mb-6"
-            >
+            <button onClick={() => { setEditing(null); setShowForm(true); }} className="btn-premium flex items-center gap-2 mb-6">
               <Plus className="w-4 h-4" /> Add Product
             </button>
-
             {showForm && (
-              <ProductForm
-                product={editing}
-                onSave={handleSave}
-                onCancel={() => { setShowForm(false); setEditing(null); }}
-              />
+              <ProductForm product={editing} onSave={handleSave} onCancel={() => { setShowForm(false); setEditing(null); }} />
             )}
-
             <div className="space-y-3">
               {products.map((p) => (
                 <motion.div key={p.id} layout className="glass-card p-4 flex items-center gap-4">
@@ -148,16 +126,10 @@ const Admin = () => {
                     <p className="font-heading font-medium text-sm truncate">{p.name}</p>
                     <p className="text-xs text-muted-foreground">{p.brand} • ₹{p.price.toLocaleString("en-IN")}</p>
                   </div>
-                  <button
-                    onClick={() => { setEditing(p); setShowForm(true); }}
-                    className="p-2.5 hover:bg-secondary rounded-xl transition-colors"
-                  >
+                  <button onClick={() => { setEditing(p); setShowForm(true); }} className="p-2.5 hover:bg-secondary rounded-xl transition-colors">
                     <Pencil className="w-4 h-4" />
                   </button>
-                  <button
-                    onClick={() => handleDelete(p.id)}
-                    className="p-2.5 hover:bg-destructive/20 rounded-xl transition-colors"
-                  >
+                  <button onClick={() => handleDelete(p.id)} className="p-2.5 hover:bg-destructive/20 rounded-xl transition-colors">
                     <Trash2 className="w-4 h-4 text-destructive" />
                   </button>
                 </motion.div>
@@ -168,10 +140,47 @@ const Admin = () => {
 
         {activeTab === "reels" && <MediaLinksTab type="reels" />}
         {activeTab === "videos" && <MediaLinksTab type="videos" />}
+        {activeTab === "channels" && <ChannelLinksTab />}
       </div>
     </div>
   );
 };
+
+function ChannelLinksTab() {
+  const [instagram, setInstagram] = useState("");
+  const [youtube, setYoutube] = useState("");
+
+  useEffect(() => {
+    const stored = localStorage.getItem("ge-channel-links");
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      setInstagram(parsed.instagram || "");
+      setYoutube(parsed.youtube || "");
+    }
+  }, []);
+
+  const save = () => {
+    localStorage.setItem("ge-channel-links", JSON.stringify({ instagram, youtube }));
+    toast({ title: "Channel links saved!" });
+  };
+
+  return (
+    <div className="space-y-6 max-w-lg">
+      <h2 className="text-lg font-heading font-bold">Channel / Profile Links</h2>
+      <div className="space-y-4">
+        <div>
+          <label className="text-xs font-medium text-muted-foreground mb-1 block">Instagram Profile URL</label>
+          <input type="text" placeholder="https://instagram.com/yourpage" value={instagram} onChange={(e) => setInstagram(e.target.value)} className="w-full px-4 py-3 rounded-xl bg-secondary border border-border text-sm focus:outline-none focus:border-primary transition-colors" />
+        </div>
+        <div>
+          <label className="text-xs font-medium text-muted-foreground mb-1 block">YouTube Channel URL</label>
+          <input type="text" placeholder="https://youtube.com/@yourchannel" value={youtube} onChange={(e) => setYoutube(e.target.value)} className="w-full px-4 py-3 rounded-xl bg-secondary border border-border text-sm focus:outline-none focus:border-primary transition-colors" />
+        </div>
+        <button onClick={save} className="btn-premium">Save Links</button>
+      </div>
+    </div>
+  );
+}
 
 function MediaLinksTab({ type }: { type: "reels" | "videos" }) {
   const storageKey = type === "reels" ? "ge-instagram-reels" : "ge-youtube-videos";
@@ -217,7 +226,7 @@ function MediaLinksTab({ type }: { type: "reels" | "videos" }) {
       </div>
       <div className="space-y-2">
         {links.length === 0 && (
-          <p className="text-center text-muted-foreground py-8">No {type === "reels" ? "reels" : "videos"} added yet</p>
+          <p className="text-center text-muted-foreground py-8">No {type === "reels" ? "reels" : "videos"} added yet. Links added here will appear on the homepage.</p>
         )}
         {links.map((link, i) => (
           <div key={i} className="glass-card p-4 flex items-center gap-3">
@@ -231,6 +240,45 @@ function MediaLinksTab({ type }: { type: "reels" | "videos" }) {
       </div>
     </div>
   );
+}
+
+async function compressImage(file: File, maxSizeKB = 500): Promise<string> {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new window.Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        let { width, height } = img;
+
+        // Scale down if very large
+        const maxDim = 1200;
+        if (width > maxDim || height > maxDim) {
+          const ratio = Math.min(maxDim / width, maxDim / height);
+          width = Math.round(width * ratio);
+          height = Math.round(height * ratio);
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d")!;
+        ctx.drawImage(img, 0, 0, width, height);
+
+        // Try different quality levels
+        let quality = 0.85;
+        let result = canvas.toDataURL("image/jpeg", quality);
+
+        while (result.length > maxSizeKB * 1370 && quality > 0.1) {
+          quality -= 0.1;
+          result = canvas.toDataURL("image/jpeg", quality);
+        }
+
+        resolve(result);
+      };
+      img.src = e.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+  });
 }
 
 function ProductForm({
@@ -251,12 +299,59 @@ function ProductForm({
       category: categories[0],
       specs: "",
       description: "",
-      images: [""],
+      images: [],
       featured: false,
     }
   );
+  const [uploading, setUploading] = useState(false);
+  const [thumbnailIndex, setThumbnailIndex] = useState(0);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const update = (key: keyof Product, value: any) => setForm({ ...form, [key]: value });
+
+  const handleImageUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files?.length) return;
+
+    setUploading(true);
+    const newImages: string[] = [];
+
+    for (const file of Array.from(files)) {
+      try {
+        const compressed = await compressImage(file);
+        newImages.push(compressed);
+      } catch (err) {
+        toast({ title: `Failed to process ${file.name}`, variant: "destructive" });
+      }
+    }
+
+    setForm((prev) => ({ ...prev, images: [...prev.images, ...newImages] }));
+    setUploading(false);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+    toast({ title: `${newImages.length} image(s) uploaded & compressed` });
+  }, []);
+
+  const removeImage = (index: number) => {
+    const updated = form.images.filter((_, i) => i !== index);
+    setForm({ ...form, images: updated });
+    if (thumbnailIndex >= updated.length) setThumbnailIndex(0);
+  };
+
+  const handleSave = () => {
+    if (!form.name || !form.price) {
+      toast({ title: "Name and price are required", variant: "destructive" });
+      return;
+    }
+    // Reorder images so thumbnail is first
+    if (thumbnailIndex > 0 && form.images.length > 1) {
+      const reordered = [...form.images];
+      const [thumb] = reordered.splice(thumbnailIndex, 1);
+      reordered.unshift(thumb);
+      onSave({ ...form, images: reordered });
+    } else {
+      onSave(form);
+    }
+  };
 
   return (
     <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="glass-card p-6 md:p-8 mb-8 space-y-5">
@@ -268,14 +363,7 @@ function ProductForm({
           <h4 className="text-xs font-medium text-muted-foreground mb-2">Brand</h4>
           <div className="flex flex-wrap gap-2">
             {[...brands, "Other"].map((b) => (
-              <button
-                key={b}
-                type="button"
-                onClick={() => update("brand", b)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                  form.brand === b ? "bg-primary text-primary-foreground" : "bg-secondary hover:bg-secondary/80 border border-border"
-                }`}
-              >
+              <button key={b} type="button" onClick={() => update("brand", b)} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${form.brand === b ? "bg-primary text-primary-foreground" : "bg-secondary hover:bg-secondary/80 border border-border"}`}>
                 {b}
               </button>
             ))}
@@ -284,7 +372,39 @@ function ProductForm({
         <select value={form.category} onChange={(e) => update("category", e.target.value)} className="px-4 py-3 rounded-xl bg-secondary border border-border text-sm focus:outline-none focus:border-primary transition-colors">
           {categories.map((c) => <option key={c} value={c}>{c}</option>)}
         </select>
-        <input placeholder="Image URL" value={form.images[0]} onChange={(e) => update("images", [e.target.value])} className="md:col-span-2 px-4 py-3 rounded-xl bg-secondary border border-border text-sm focus:outline-none focus:border-primary transition-colors" />
+
+        {/* Image Upload */}
+        <div className="md:col-span-2 space-y-3">
+          <h4 className="text-xs font-medium text-muted-foreground">Product Images (auto-compressed under 500KB)</h4>
+          <div
+            onClick={() => fileInputRef.current?.click()}
+            className="border-2 border-dashed border-border rounded-xl p-6 text-center cursor-pointer hover:border-primary/50 transition-colors"
+          >
+            <Upload className="w-8 h-8 mx-auto text-muted-foreground mb-2" />
+            <p className="text-sm text-muted-foreground">
+              {uploading ? "Compressing..." : "Click to upload images"}
+            </p>
+            <p className="text-xs text-muted-foreground/60 mt-1">Supports multiple images • Auto-compressed</p>
+          </div>
+          <input ref={fileInputRef} type="file" accept="image/*" multiple onChange={handleImageUpload} className="hidden" />
+
+          {form.images.length > 0 && (
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
+              {form.images.map((img, i) => (
+                <div key={i} className={`relative group rounded-xl overflow-hidden border-2 cursor-pointer transition-all ${i === thumbnailIndex ? "border-primary shadow-[0_0_10px_hsl(var(--primary)/0.3)]" : "border-border"}`} onClick={() => setThumbnailIndex(i)}>
+                  <img src={img} alt="" className="w-full aspect-square object-cover" />
+                  {i === thumbnailIndex && (
+                    <span className="absolute bottom-0 left-0 right-0 bg-primary text-primary-foreground text-[9px] text-center py-0.5 font-bold">THUMBNAIL</span>
+                  )}
+                  <button onClick={(e) => { e.stopPropagation(); removeImage(i); }} className="absolute top-1 right-1 p-1 bg-destructive/90 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                    <X className="w-3 h-3 text-white" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
         <input placeholder="Specs (brief)" value={form.specs} onChange={(e) => update("specs", e.target.value)} className="md:col-span-2 px-4 py-3 rounded-xl bg-secondary border border-border text-sm focus:outline-none focus:border-primary transition-colors" />
         <textarea placeholder="Description" value={form.description} onChange={(e) => update("description", e.target.value)} rows={3} className="md:col-span-2 px-4 py-3 rounded-xl bg-secondary border border-border text-sm focus:outline-none focus:border-primary resize-none transition-colors" />
         <label className="flex items-center gap-2 text-sm font-medium">
@@ -293,7 +413,7 @@ function ProductForm({
         </label>
       </div>
       <div className="flex gap-3">
-        <button onClick={() => onSave(form)} className="btn-premium">Save Product</button>
+        <button onClick={handleSave} className="btn-premium">Save Product</button>
         <button onClick={onCancel} className="px-6 py-3 rounded-xl bg-secondary text-sm font-medium hover:bg-secondary/80 transition-colors">Cancel</button>
       </div>
     </motion.div>

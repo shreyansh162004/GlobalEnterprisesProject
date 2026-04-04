@@ -8,9 +8,10 @@ import { toast } from "@/hooks/use-toast";
 interface ProductCardProps {
   product: Product;
   index?: number;
+  variant?: "dark" | "light";
 }
 
-const ProductCard = ({ product, index = 0 }: ProductCardProps) => {
+const ProductCard = ({ product, index = 0, variant = "dark" }: ProductCardProps) => {
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     addToCart(product);
@@ -21,6 +22,8 @@ const ProductCard = ({ product, index = 0 }: ProductCardProps) => {
     `Hi! I'm interested in ${product.name} (₹${product.price.toLocaleString("en-IN")}). Is it available?`
   )}`;
 
+  const isLight = variant === "light";
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 30 }}
@@ -29,7 +32,11 @@ const ProductCard = ({ product, index = 0 }: ProductCardProps) => {
       transition={{ duration: 0.5, delay: index * 0.1 }}
     >
       <Link to={`/products/${product.id}`} className="block group">
-        <div className="glass-card overflow-hidden hover-lift">
+        <div className={`overflow-hidden rounded-2xl transition-all duration-300 hover:-translate-y-2 ${
+          isLight
+            ? "bg-white/80 backdrop-blur-sm border border-gray-200 shadow-sm hover:shadow-lg"
+            : "glass-card hover:shadow-2xl hover:shadow-primary/15"
+        }`}>
           <div className="relative overflow-hidden aspect-[4/3]">
             <img
               src={product.images[0]}
@@ -37,7 +44,7 @@ const ProductCard = ({ product, index = 0 }: ProductCardProps) => {
               className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
               loading="lazy"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            <div className={`absolute inset-0 bg-gradient-to-t ${isLight ? "from-white/80" : "from-background/80"} to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
             <span className="absolute top-3 left-3 text-[10px] px-2.5 py-1 rounded-full bg-primary/20 text-primary backdrop-blur-sm font-medium border border-primary/10">
               {product.category}
             </span>
@@ -45,9 +52,9 @@ const ProductCard = ({ product, index = 0 }: ProductCardProps) => {
           <div className="p-5 space-y-3">
             <div>
               <p className="text-xs text-primary font-medium tracking-wide">{product.brand}</p>
-              <h3 className="font-heading font-bold text-base mt-0.5 leading-tight">{product.name}</h3>
+              <h3 className={`font-heading font-bold text-base mt-0.5 leading-tight ${isLight ? "text-gray-900" : ""}`}>{product.name}</h3>
             </div>
-            <p className="text-xs text-muted-foreground line-clamp-1">{product.specs}</p>
+            <p className={`text-xs line-clamp-1 ${isLight ? "text-gray-500" : "text-muted-foreground"}`}>{product.specs}</p>
             <p className="text-xl font-heading font-bold text-primary">
               ₹{product.price.toLocaleString("en-IN")}
             </p>

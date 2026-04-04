@@ -339,7 +339,7 @@ const Index = () => {
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
                 />
-              </div>
+              </motion.div>
             </ScrollReveal>
           </div>
         </div>

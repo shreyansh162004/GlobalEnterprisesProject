@@ -1,7 +1,8 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Plus, Minus, Trash2, MessageCircle } from "lucide-react";
+import { X, Plus, Minus, Trash2, MessageCircle, Share2 } from "lucide-react";
 import { CartItem, getCart, updateQuantity, removeFromCart, getCartTotal, getWhatsAppCheckoutLink } from "@/data/cart";
 import { useEffect, useState } from "react";
+import { toast } from "@/hooks/use-toast";
 
 interface CartDrawerProps {
   open: boolean;
@@ -19,6 +20,29 @@ const CartDrawer = ({ open, onClose }: CartDrawerProps) => {
   }, [open]);
 
   const total = getCartTotal(cart);
+
+  const handleShareCart = async () => {
+    const lines = cart.map(
+      (item) => `• ${item.product.name} x${item.quantity} - ₹${(item.product.price * item.quantity).toLocaleString("en-IN")}`
+    );
+    const text = `My Cart from Global Enterprises:\n\n${lines.join("\n")}\n\nTotal: ₹${total.toLocaleString("en-IN")}\n\n${window.location.origin}/products`;
+    if (navigator.share) {
+      try { await navigator.share({ title: "My Cart - Global Enterprises", text }); } catch {}
+    } else {
+      await navigator.clipboard.writeText(text);
+      toast({ title: "Cart details copied!" });
+    }
+  };
+
+  const handleShareItem = async (item: CartItem) => {
+    const text = `Check out ${item.product.name} - ₹${item.product.price.toLocaleString("en-IN")} at Global Enterprises\n${window.location.origin}/products/${item.product.id}`;
+    if (navigator.share) {
+      try { await navigator.share({ title: item.product.name, text }); } catch {}
+    } else {
+      await navigator.clipboard.writeText(text);
+      toast({ title: "Link copied!" });
+    }
+  };
 
   return (
     <AnimatePresence>
@@ -40,9 +64,16 @@ const CartDrawer = ({ open, onClose }: CartDrawerProps) => {
           >
             <div className="flex items-center justify-between p-6 border-b border-border">
               <h2 className="text-xl font-heading font-bold">Your Cart</h2>
-              <button onClick={onClose} className="p-2 hover:bg-secondary rounded-xl transition-colors">
-                <X className="w-5 h-5" />
-              </button>
+              <div className="flex items-center gap-2">
+                {cart.length > 0 && (
+                  <button onClick={handleShareCart} className="p-2 hover:bg-secondary rounded-xl transition-colors" title="Share cart">
+                    <Share2 className="w-5 h-5" />
+                  </button>
+                )}
+                <button onClick={onClose} className="p-2 hover:bg-secondary rounded-xl transition-colors">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
             </div>
 
             <div className="flex-1 overflow-y-auto p-6 space-y-4">
@@ -81,8 +112,15 @@ const CartDrawer = ({ open, onClose }: CartDrawerProps) => {
                           <Plus className="w-3 h-3" />
                         </button>
                         <button
+                          onClick={() => handleShareItem(item)}
+                          className="p-1.5 hover:bg-secondary rounded-lg transition-colors ml-auto"
+                          title="Share"
+                        >
+                          <Share2 className="w-3 h-3" />
+                        </button>
+                        <button
                           onClick={() => removeFromCart(item.product.id)}
-                          className="p-1.5 hover:bg-destructive/20 rounded-lg transition-colors ml-auto"
+                          className="p-1.5 hover:bg-destructive/20 rounded-lg transition-colors"
                         >
                           <Trash2 className="w-3 h-3 text-destructive" />
                         </button>

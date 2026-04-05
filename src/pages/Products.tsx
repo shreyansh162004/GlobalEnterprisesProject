@@ -7,14 +7,6 @@ import ScrollReveal from "@/components/ScrollReveal";
 import { SlidersHorizontal, X, Search } from "lucide-react";
 import Fuse from "fuse.js";
 
-const priceRanges = [
-  { label: "All Prices", min: 0, max: 999999 },
-  { label: "Under ₹30K", min: 0, max: 30000 },
-  { label: "₹30K – ₹50K", min: 30000, max: 50000 },
-  { label: "₹50K – ₹80K", min: 50000, max: 80000 },
-  { label: "₹80K+", min: 80000, max: 999999 },
-];
-
 const Products = () => {
   const [searchParams] = useSearchParams();
   const [selectedBrand, setSelectedBrand] = useState<string>(searchParams.get("brand") || "");
@@ -24,6 +16,27 @@ const Products = () => {
   const [searchQuery, setSearchQuery] = useState("");
 
   const products = getProducts();
+
+  // Dynamic price ranges based on actual product prices
+  const priceRanges = useMemo(() => {
+    if (products.length === 0) return [{ label: "All Prices", min: 0, max: 999999 }];
+    const prices = products.map((p) => p.price).sort((a, b) => a - b);
+    const minP = prices[0];
+    const maxP = prices[prices.length - 1];
+    const step = Math.ceil((maxP - minP) / 4 / 5000) * 5000;
+    const ranges = [{ label: "All Prices", min: 0, max: 999999 }];
+    let current = Math.floor(minP / 5000) * 5000;
+    for (let i = 0; i < 4; i++) {
+      const rMin = current;
+      const rMax = i === 3 ? 999999 : current + step;
+      const count = products.filter((p) => p.price >= rMin && (i === 3 ? true : p.price < rMax)).length;
+      const fmt = (v: number) => v >= 100000 ? `₹${(v / 100000).toFixed(v % 100000 === 0 ? 0 : 1)}L` : `₹${(v / 1000).toFixed(0)}K`;
+      const label = i === 3 ? `${fmt(rMin)}+ (${count})` : `${fmt(rMin)} – ${fmt(rMax)} (${count})`;
+      ranges.push({ label, min: rMin, max: rMax });
+      current += step;
+    }
+    return ranges;
+  }, [products]);
 
   const fuse = useMemo(
     () =>
@@ -46,17 +59,15 @@ const Products = () => {
       const idx = priceRanges.findIndex((r) => r.min === min && r.max === max);
       if (idx !== -1) setSelectedPrice(idx);
     }
-  }, [searchParams]);
+  }, [searchParams, priceRanges]);
 
   const filtered = useMemo(() => {
     let result: Product[];
-
     if (searchQuery.trim()) {
       result = fuse.search(searchQuery).map((r) => r.item);
     } else {
       result = products;
     }
-
     return result.filter((p) => {
       if (selectedBrand && p.brand !== selectedBrand) return false;
       if (selectedCategory && p.category !== selectedCategory) return false;
@@ -64,9 +75,8 @@ const Products = () => {
       if (p.price < range.min || p.price > range.max) return false;
       return true;
     });
-  }, [products, selectedBrand, selectedCategory, selectedPrice, searchQuery, fuse]);
+  }, [products, selectedBrand, selectedCategory, selectedPrice, searchQuery, fuse, priceRanges]);
 
-  // Recommended products (similar or higher price)
   const recommendations = useMemo(() => {
     if (filtered.length === 0 || filtered.length >= products.length) return [];
     const filteredIds = new Set(filtered.map((p) => p.id));
@@ -98,7 +108,6 @@ const Products = () => {
           </div>
         </ScrollReveal>
 
-        {/* Search bar */}
         <div className="mb-8">
           <div className="relative max-w-xl">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
@@ -120,7 +129,6 @@ const Products = () => {
           </div>
         </div>
 
-        {/* Filter toggle (mobile) */}
         <button
           onClick={() => setShowFilters(!showFilters)}
           className="md:hidden flex items-center gap-2 mb-4 px-4 py-2.5 rounded-xl bg-secondary text-sm font-medium"
@@ -130,7 +138,6 @@ const Products = () => {
         </button>
 
         <div className="flex flex-col md:flex-row gap-8">
-          {/* Filters */}
           <motion.aside
             className={`w-full md:w-64 shrink-0 space-y-6 ${showFilters ? "block" : "hidden md:block"}`}
             initial={{ opacity: 0, x: -20 }}
@@ -215,7 +222,6 @@ const Products = () => {
             </div>
           </motion.aside>
 
-          {/* Product Grid */}
           <div className="flex-1">
             <p className="text-sm text-muted-foreground mb-6 font-medium">{filtered.length} products found</p>
             {filtered.length === 0 ? (
@@ -233,7 +239,6 @@ const Products = () => {
               </div>
             )}
 
-            {/* Recommendations */}
             {recommendations.length > 0 && (
               <div className="mt-16">
                 <ScrollReveal>

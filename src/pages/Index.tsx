@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { ArrowRight, Shield, Truck, HeadphonesIcon, Award, Star, Instagram, Youtube, Quote } from "lucide-react";
+import { ArrowRight, Shield, Truck, HeadphonesIcon, Award, Star, Instagram, Youtube, Quote, Share2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { getProducts } from "@/data/products";
 import ProductCard from "@/components/ProductCard";
@@ -32,7 +32,6 @@ const Index = () => {
   const products = getProducts();
   const featured = products.filter((p) => p.featured).slice(0, 4);
 
-  // Load admin-managed reels & videos from localStorage
   const [reelLinks, setReelLinks] = useState<string[]>([]);
   const [videoLinks, setVideoLinks] = useState<string[]>([]);
   const [channelLinks, setChannelLinks] = useState({ instagram: "", youtube: "" });
@@ -62,9 +61,9 @@ const Index = () => {
   ];
 
   return (
-    <div className="min-h-screen">
-      {/* Hero - Dark */}
-      <section className="relative min-h-screen flex items-center overflow-hidden bg-background text-foreground">
+    <div className="min-h-screen bg-background text-foreground">
+      {/* Hero */}
+      <section className="relative min-h-screen flex items-center overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-background via-background to-primary/5" />
         <div className="absolute inset-0">
           {[...Array(3)].map((_, i) => (
@@ -150,16 +149,13 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Gradient transition dark → light */}
-      <div className="h-24 md:h-32 section-divider-light" />
-
-      {/* Featured Products - Light */}
-      <section className="py-16 md:py-24 bg-light-section text-light-section-fg transition-colors duration-500">
+      {/* Featured Products */}
+      <section className="py-20 md:py-28">
         <div className="container mx-auto px-4">
           <ScrollReveal>
             <div className="flex items-end justify-between mb-14">
               <div>
-                <p className="text-primary text-sm font-medium mb-2 tracking-wider">FEATURED</p>
+                <p className="text-primary text-sm font-medium mb-2 tracking-wider uppercase">Featured</p>
                 <h2 className="text-3xl md:text-5xl font-heading font-bold">Trending Products</h2>
               </div>
               <Link to="/products" className="text-sm text-primary hover:underline flex items-center gap-1 font-medium">
@@ -169,21 +165,18 @@ const Index = () => {
           </ScrollReveal>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
             {featured.map((product, i) => (
-              <ProductCard key={product.id} product={product} index={i} variant="light" />
+              <ProductCard key={product.id} product={product} index={i} />
             ))}
           </div>
         </div>
       </section>
 
-      {/* Gradient transition light → dark */}
-      <div className="h-24 md:h-32 section-divider-dark" />
-
-      {/* Why Choose Us - Dark */}
-      <section className="py-16 md:py-24 bg-background text-foreground transition-colors duration-500">
+      {/* Why Choose Us */}
+      <section className="py-20 md:py-28">
         <div className="container mx-auto px-4">
           <ScrollReveal>
             <div className="text-center mb-14">
-              <p className="text-primary text-sm font-medium mb-2 tracking-wider">WHY CHOOSE US</p>
+              <p className="text-primary text-sm font-medium mb-2 tracking-wider uppercase">Why Choose Us</p>
               <h2 className="text-3xl md:text-5xl font-heading font-bold">The Global Advantage</h2>
             </div>
           </ScrollReveal>
@@ -207,14 +200,12 @@ const Index = () => {
         </div>
       </section>
 
-      <div className="h-24 md:h-32 section-divider-light" />
-
-      {/* Customer Reviews - Light */}
-      <section className="py-16 md:py-24 bg-light-section text-light-section-fg transition-colors duration-500">
+      {/* Customer Reviews */}
+      <section className="py-20 md:py-28">
         <div className="container mx-auto px-4">
           <ScrollReveal>
             <div className="text-center mb-14">
-              <p className="text-primary text-sm font-medium mb-2 tracking-wider">TESTIMONIALS</p>
+              <p className="text-primary text-sm font-medium mb-2 tracking-wider uppercase">Testimonials</p>
               <h2 className="text-3xl md:text-5xl font-heading font-bold">What Our Customers Say</h2>
             </div>
           </ScrollReveal>
@@ -223,16 +214,16 @@ const Index = () => {
               <ScrollReveal key={review.name} delay={i * 0.1}>
                 <motion.div
                   whileHover={{ y: -5, scale: 1.02 }}
-                  className="bg-white/80 backdrop-blur-sm border border-gray-200 rounded-2xl p-7 space-y-4 h-full shadow-sm hover:shadow-lg transition-shadow duration-300"
+                  className="glass-card p-7 space-y-4 h-full"
                 >
                   <Quote className="w-8 h-8 text-primary/30" />
-                  <p className="text-sm leading-relaxed text-gray-600">{review.text}</p>
+                  <p className="text-sm leading-relaxed text-muted-foreground">{review.text}</p>
                   <div className="flex items-center gap-3 pt-2">
                     <div className="w-11 h-11 rounded-full bg-primary/20 flex items-center justify-center text-sm font-bold text-primary">
                       {review.avatar}
                     </div>
                     <div>
-                      <p className="text-sm font-heading font-bold text-gray-900">{review.name}</p>
+                      <p className="text-sm font-heading font-bold">{review.name}</p>
                       <div className="flex gap-0.5">
                         {[...Array(review.rating)].map((_, j) => (
                           <Star key={j} className="w-3 h-3 fill-primary text-primary" />
@@ -247,16 +238,14 @@ const Index = () => {
         </div>
       </section>
 
-      <div className="h-24 md:h-32 section-divider-dark" />
-
-      {/* Instagram Reels - Dark */}
-      <section className="py-16 md:py-24 bg-background text-foreground transition-colors duration-500">
+      {/* Instagram Reels */}
+      <section className="py-20 md:py-28">
         <div className="container mx-auto px-4">
           <ScrollReveal>
             <div className="text-center mb-14">
               <div className="flex items-center justify-center gap-2 mb-2">
                 <Instagram className="w-5 h-5 text-pink-400" />
-                <p className="text-pink-400 text-sm font-medium tracking-wider">INSTAGRAM</p>
+                <p className="text-pink-400 text-sm font-medium tracking-wider uppercase">Instagram</p>
               </div>
               <h2 className="text-3xl md:text-5xl font-heading font-bold">Latest Reels & Updates</h2>
               <p className="mt-3 text-muted-foreground">
@@ -274,31 +263,28 @@ const Index = () => {
           </ScrollReveal>
           {reelLinks.length > 0 ? (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-              {reelLinks.map((link, i) => {
-                const embedId = getInstagramEmbedId(link);
-                return (
-                  <ScrollReveal key={i} delay={i * 0.1}>
-                    <motion.a
-                      href={link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      whileHover={{ scale: 1.05 }}
-                      className="relative block rounded-2xl overflow-hidden group aspect-[3/4] glass-card"
-                    >
-                      <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-pink-500/20 to-purple-500/20">
-                        <Instagram className="w-10 h-10 text-pink-400" />
+              {reelLinks.map((link, i) => (
+                <ScrollReveal key={i} delay={i * 0.1}>
+                  <motion.a
+                    href={link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    whileHover={{ scale: 1.05 }}
+                    className="relative block rounded-2xl overflow-hidden group aspect-[3/4] glass-card"
+                  >
+                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-pink-500/20 to-purple-500/20">
+                      <Instagram className="w-10 h-10 text-pink-400" />
+                    </div>
+                    <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-background/90 to-transparent">
+                      <p className="text-xs font-heading font-bold line-clamp-2">Reel {i + 1}</p>
+                      <div className="flex items-center gap-1 mt-1.5">
+                        <Instagram className="w-3 h-3 text-pink-400" />
+                        <span className="text-[10px] text-muted-foreground">View on Instagram</span>
                       </div>
-                      <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-background/90 to-transparent">
-                        <p className="text-xs font-heading font-bold line-clamp-2 text-foreground">Reel {i + 1}</p>
-                        <div className="flex items-center gap-1 mt-1.5">
-                          <Instagram className="w-3 h-3 text-pink-400" />
-                          <span className="text-[10px] text-muted-foreground">View on Instagram</span>
-                        </div>
-                      </div>
-                    </motion.a>
-                  </ScrollReveal>
-                );
-              })}
+                    </div>
+                  </motion.a>
+                </ScrollReveal>
+              ))}
             </div>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
@@ -314,7 +300,7 @@ const Index = () => {
                     <img src={reel.thumbnail} alt={reel.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
                     <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-transparent to-transparent" />
                     <div className="absolute bottom-0 left-0 right-0 p-4">
-                      <p className="text-xs font-heading font-bold line-clamp-2 text-foreground">{reel.title}</p>
+                      <p className="text-xs font-heading font-bold line-clamp-2">{reel.title}</p>
                       <div className="flex items-center gap-1 mt-1.5">
                         <Instagram className="w-3 h-3 text-pink-400" />
                         <span className="text-[10px] text-muted-foreground">Reel</span>
@@ -328,19 +314,17 @@ const Index = () => {
         </div>
       </section>
 
-      <div className="h-24 md:h-32 section-divider-light" />
-
-      {/* YouTube Section - Light */}
-      <section className="py-16 md:py-24 bg-light-section text-light-section-fg transition-colors duration-500">
+      {/* YouTube Section */}
+      <section className="py-20 md:py-28">
         <div className="container mx-auto px-4">
           <ScrollReveal>
             <div className="text-center mb-14">
               <div className="flex items-center justify-center gap-2 mb-2">
                 <Youtube className="w-5 h-5 text-red-500" />
-                <p className="text-red-500 text-sm font-medium tracking-wider">YOUTUBE</p>
+                <p className="text-red-500 text-sm font-medium tracking-wider uppercase">YouTube</p>
               </div>
               <h2 className="text-3xl md:text-5xl font-heading font-bold">Watch Our Reviews</h2>
-              <p className="mt-3 text-gray-500">
+              <p className="mt-3 text-muted-foreground">
                 Subscribe to our{" "}
                 <a
                   href={channelLinks.youtube || "https://youtube.com/@globalenterprises"}
@@ -356,7 +340,7 @@ const Index = () => {
           <div className="grid md:grid-cols-2 gap-6 md:gap-8 max-w-4xl mx-auto">
             {displayVideos.slice(0, 4).map((url, i) => (
               <ScrollReveal key={i} direction={i % 2 === 0 ? "left" : "right"}>
-                <div className="bg-white/80 backdrop-blur-sm border border-gray-200 rounded-2xl overflow-hidden aspect-video shadow-sm hover:shadow-lg transition-shadow duration-300">
+                <div className="glass-card rounded-2xl overflow-hidden aspect-video">
                   <iframe
                     src={getYouTubeEmbedUrl(url)}
                     title={`Video ${i + 1}`}
@@ -371,10 +355,8 @@ const Index = () => {
         </div>
       </section>
 
-      <div className="h-24 md:h-32 section-divider-dark" />
-
-      {/* About Preview - Dark */}
-      <section className="py-16 md:py-24 bg-background text-foreground transition-colors duration-500">
+      {/* About Preview */}
+      <section className="py-20 md:py-28">
         <div className="container mx-auto px-4">
           <div className="grid md:grid-cols-2 gap-16 items-center">
             <ScrollReveal direction="left">
@@ -388,7 +370,7 @@ const Index = () => {
             </ScrollReveal>
             <ScrollReveal direction="right">
               <div className="space-y-6">
-                <p className="text-primary text-sm font-medium tracking-wider">ABOUT US</p>
+                <p className="text-primary text-sm font-medium tracking-wider uppercase">About Us</p>
                 <h2 className="text-3xl md:text-5xl font-heading font-bold leading-tight">
                   Trusted by <span className="text-gradient">Thousands</span> in Jabalpur
                 </h2>
@@ -404,17 +386,15 @@ const Index = () => {
         </div>
       </section>
 
-      <div className="h-24 md:h-32 section-divider-light" />
-
-      {/* WhatsApp CTA - Light */}
-      <section className="py-16 md:py-24 bg-light-section text-light-section-fg transition-colors duration-500">
+      {/* WhatsApp CTA */}
+      <section className="py-20 md:py-28">
         <div className="container mx-auto px-4">
           <ScrollReveal>
-            <div className="bg-white/80 backdrop-blur-sm border border-gray-200 rounded-3xl p-10 md:p-16 text-center shadow-sm">
+            <div className="glass-card rounded-3xl p-10 md:p-16 text-center">
               <h2 className="text-3xl md:text-5xl font-heading font-bold mb-6">
                 Need Help Choosing?
               </h2>
-              <p className="text-lg mb-8 max-w-lg mx-auto text-gray-500">
+              <p className="text-lg mb-8 max-w-lg mx-auto text-muted-foreground">
                 Chat with our experts on WhatsApp and get personalized recommendations instantly.
               </p>
               <a
@@ -430,7 +410,6 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Bottom spacer for mobile nav */}
       <div className="h-16 md:hidden" />
     </div>
   );

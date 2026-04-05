@@ -1,6 +1,7 @@
 import { useParams, Link } from "react-router-dom";
+import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, ShoppingCart, MessageCircle } from "lucide-react";
+import { ArrowLeft, ShoppingCart, MessageCircle, Share2, ChevronLeft, ChevronRight } from "lucide-react";
 import { getProducts } from "@/data/products";
 import { addToCart } from "@/data/cart";
 import ProductCard from "@/components/ProductCard";
@@ -11,6 +12,41 @@ const ProductDetail = () => {
   const { id } = useParams();
   const products = getProducts();
   const product = products.find((p) => p.id === id);
+  const [currentImage, setCurrentImage] = useState(0);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const images = product?.images || [];
+
+  useEffect(() => {
+    if (images.length <= 1) return;
+    intervalRef.current = setInterval(() => {
+      setCurrentImage((prev) => (prev + 1) % images.length);
+    }, 3000);
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [images.length]);
+
+  const goToImage = (idx: number) => {
+    setCurrentImage(idx);
+    if (intervalRef.current) clearInterval(intervalRef.current);
+    intervalRef.current = setInterval(() => {
+      setCurrentImage((prev) => (prev + 1) % images.length);
+    }, 3000);
+  };
+
+  const handleShare = async () => {
+    const url = window.location.href;
+    const text = product ? `Check out ${product.name} - ₹${product.price.toLocaleString("en-IN")} at Global Enterprises` : "";
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: product?.name, text, url });
+      } catch {}
+    } else {
+      await navigator.clipboard.writeText(`${text}\n${url}`);
+      toast({ title: "Link copied to clipboard!" });
+    }
+  };
 
   if (!product) {
     return (
@@ -27,7 +63,6 @@ const ProductDetail = () => {
     .filter((p) => p.id !== product.id && p.category === product.category)
     .slice(0, 4);
 
-  // Higher price recommendations
   const higherPrice = products
     .filter((p) => p.id !== product.id && p.price > product.price)
     .sort((a, b) => a.price - b.price)
@@ -45,16 +80,59 @@ const ProductDetail = () => {
         </Link>
 
         <div className="grid md:grid-cols-2 gap-12 md:gap-16">
+          {/* Image carousel */}
           <motion.div
             initial={{ opacity: 0, x: -30 }}
             animate={{ opacity: 1, x: 0 }}
-            className="glass-card p-2 rounded-3xl overflow-hidden"
+            className="glass-card p-2 rounded-3xl overflow-hidden relative group"
           >
-            <img
-              src={product.images[0]}
-              alt={product.name}
-              className="w-full h-80 md:h-[500px] object-cover rounded-2xl"
-            />
+            <div className="relative overflow-hidden rounded-2xl">
+              <div
+                className="flex transition-transform duration-500 ease-in-out"
+                style={{ transform: `translateX(-${currentImage * 100}%)` }}
+              >
+                {images.map((img, i) => (
+                  <img
+                    key={i}
+                    src={img}
+                    alt={`${product.name} ${i + 1}`}
+                    className="w-full h-80 md:h-[500px] object-cover flex-shrink-0"
+                  />
+                ))}
+              </div>
+
+              {images.length > 1 && (
+                <>
+                  <button
+                    onClick={() => goToImage((currentImage - 1 + images.length) % images.length)}
+                    className="absolute left-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-background/60 backdrop-blur-sm text-foreground opacity-0 group-hover:opacity-100 transition-opacity hover:bg-background/80"
+                  >
+                    <ChevronLeft className="w-5 h-5" />
+                  </button>
+                  <button
+                    onClick={() => goToImage((currentImage + 1) % images.length)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-background/60 backdrop-blur-sm text-foreground opacity-0 group-hover:opacity-100 transition-opacity hover:bg-background/80"
+                  >
+                    <ChevronRight className="w-5 h-5" />
+                  </button>
+                </>
+              )}
+            </div>
+
+            {/* Dots */}
+            {images.length > 1 && (
+              <div className="flex justify-center gap-2 mt-3 pb-1">
+                {images.map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => goToImage(i)}
+                    className={`w-2.5 h-2.5 rounded-full transition-all ${
+                      i === currentImage ? "bg-primary scale-125" : "bg-muted-foreground/30 hover:bg-muted-foreground/50"
+                    }`}
+                  />
+                ))}
+              </div>
+            )}
           </motion.div>
 
           <motion.div
@@ -93,6 +171,13 @@ const ProductDetail = () => {
               >
                 <MessageCircle className="w-5 h-5" /> Enquire
               </a>
+              <button
+                onClick={handleShare}
+                className="flex items-center justify-center px-4 py-3 rounded-xl border border-border hover:bg-secondary transition-colors"
+                title="Share"
+              >
+                <Share2 className="w-5 h-5" />
+              </button>
             </div>
           </motion.div>
         </div>

@@ -40,11 +40,7 @@ const Navbar = ({ onCartOpen }: NavbarProps) => {
   return (
     <>
       <motion.nav
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
-          scrolled
-            ? "bg-background/60 backdrop-blur-2xl border-b border-border/40 shadow-[0_4px_30px_rgba(0,0,0,0.15)]"
-            : "bg-transparent"
-        }`}
+        className="fixed top-0 left-0 right-0 z-50 bg-transparent"
         initial={{ y: -100 }}
         animate={{ y: 0 }}
         transition={{ duration: 0.6 }}
@@ -55,31 +51,30 @@ const Navbar = ({ onCartOpen }: NavbarProps) => {
             <motion.img
               src={logo}
               alt="Global Enterprises"
-              className="w-9 h-9 md:w-10 md:h-10 rounded-full object-cover border border-primary/20 shadow-md shadow-primary/10"
+              className="w-9 h-9 md:w-10 md:h-10 rounded-full object-cover border border-primary/30 shadow-lg shadow-primary/20"
               whileHover={{ scale: 1.1, rotate: 5 }}
               transition={{ type: "spring", stiffness: 300 }}
             />
-            <div className="flex flex-col">
-              <span className="text-base md:text-lg font-heading font-bold text-gradient leading-tight">Global</span>
-              <span className="text-[9px] md:text-[10px] font-body text-muted-foreground tracking-[0.15em] uppercase">Enterprises</span>
-            </div>
+            <span className="text-sm md:text-base font-heading font-bold text-foreground drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">
+              Global Enterprises
+            </span>
           </Link>
 
           {/* Desktop nav - Oval pill */}
           <div className="hidden md:flex items-center">
-            <div className="flex items-center gap-0.5 bg-white/[0.06] backdrop-blur-xl border border-white/[0.08] rounded-full px-1.5 py-1.5">
+            <div className="flex items-center gap-0.5 bg-white/[0.06] backdrop-blur-2xl border border-white/[0.1] rounded-full px-1.5 py-1.5 shadow-[0_4px_30px_rgba(0,0,0,0.3)]">
               {links.map((link) => {
                 const active = location.pathname === link.to;
                 return (
                   <Link
                     key={link.to}
                     to={link.to}
-                    className="relative px-5 py-2 text-sm font-medium transition-colors hover:text-primary"
+                    className="relative px-5 py-2 text-sm font-medium transition-colors text-foreground/90 hover:text-primary drop-shadow-[0_1px_4px_rgba(0,0,0,0.5)]"
                   >
                     {active && (
                       <motion.span
                         layoutId="nav-pill"
-                        className="absolute inset-0 rounded-full bg-primary/15 border border-primary/25 shadow-[0_0_12px_hsl(var(--primary)/0.15)]"
+                        className="absolute inset-0 rounded-full bg-primary/20 border border-primary/30 shadow-[0_0_15px_hsl(var(--primary)/0.25)]"
                         transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                       />
                     )}
@@ -91,19 +86,19 @@ const Navbar = ({ onCartOpen }: NavbarProps) => {
           </div>
 
           <div className="flex items-center gap-3">
-            <button onClick={onCartOpen} className="relative p-2.5 rounded-full hover:bg-white/[0.06] transition-colors">
+            <button onClick={onCartOpen} className="relative p-2.5 rounded-full hover:bg-white/[0.08] transition-colors text-foreground drop-shadow-[0_1px_4px_rgba(0,0,0,0.5)]">
               <ShoppingCart className="w-5 h-5" />
               {cartCount > 0 && (
                 <motion.span
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
-                  className="absolute -top-0.5 -right-0.5 w-5 h-5 rounded-full bg-accent text-accent-foreground text-[10px] flex items-center justify-center font-bold"
+                  className="absolute -top-0.5 -right-0.5 w-5 h-5 rounded-full bg-accent text-accent-foreground text-[10px] flex items-center justify-center font-bold shadow-lg"
                 >
                   {cartCount}
                 </motion.span>
               )}
             </button>
-            <button onClick={() => setMobileOpen(!mobileOpen)} className="md:hidden p-2">
+            <button onClick={() => setMobileOpen(!mobileOpen)} className="md:hidden p-2 text-foreground drop-shadow-[0_1px_4px_rgba(0,0,0,0.5)]">
               {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
           </div>

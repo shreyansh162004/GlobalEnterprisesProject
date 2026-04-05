@@ -48,11 +48,6 @@
     --sidebar-accent-foreground: 210 40% 98%;
     --sidebar-border: 220 18% 20%;
     --sidebar-ring: 199 89% 60%;
-
-    /* Light section colors */
-    --light-section-bg: 220 15% 96%;
-    --light-section-fg: 220 20% 12%;
-    --light-section-muted: 215 15% 45%;
   }
 }
 
@@ -119,15 +114,6 @@
 
   .section-gap {
     @apply py-24 md:py-32;
-  }
-
-  /* Gradient divider between sections */
-  .section-divider-light {
-    background: linear-gradient(180deg, hsl(var(--background)) 0%, hsl(var(--light-section-bg)) 100%);
-  }
-
-  .section-divider-dark {
-    background: linear-gradient(180deg, hsl(var(--light-section-bg)) 0%, hsl(var(--background)) 100%);
   }
 }
 

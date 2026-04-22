@@ -414,13 +414,15 @@ function ProductForm({
   onSave: (p: Product) => void;
   onCancel: () => void;
 }) {
+  const brandList = getBrands();
+  const categoryList = getCategories();
   const [form, setForm] = useState<Product>(
     product || {
       id: "",
       name: "",
       price: 0,
-      brand: brands[0],
-      category: categories[0],
+      brand: brandList[0] || "",
+      category: categoryList[0] || "",
       specs: "",
       description: "",
       images: [],
@@ -486,16 +488,20 @@ function ProductForm({
         <div>
           <h4 className="text-xs font-medium text-muted-foreground mb-2">Brand</h4>
           <div className="flex flex-wrap gap-2">
-            {[...brands, "Other"].map((b) => (
+            {[...brandList, "Other"].map((b) => (
               <button key={b} type="button" onClick={() => update("brand", b)} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${form.brand === b ? "bg-primary text-primary-foreground" : "bg-secondary hover:bg-secondary/80 border border-border"}`}>
                 {b}
               </button>
             ))}
           </div>
         </div>
-        <select value={form.category} onChange={(e) => update("category", e.target.value)} className="px-4 py-3 rounded-xl bg-secondary border border-border text-sm focus:outline-none focus:border-primary transition-colors">
-          {categories.map((c) => <option key={c} value={c}>{c}</option>)}
-        </select>
+        <div>
+          <h4 className="text-xs font-medium text-muted-foreground mb-2">Category</h4>
+          <select value={form.category} onChange={(e) => update("category", e.target.value)} className="w-full px-4 py-3 rounded-xl bg-secondary border border-border text-sm focus:outline-none focus:border-primary transition-colors">
+            {categoryList.map((c) => <option key={c} value={c}>{c}</option>)}
+          </select>
+          <p className="text-[10px] text-muted-foreground/70 mt-1.5">Manage categories from the Categories tab.</p>
+        </div>
 
         {/* Image Upload */}
         <div className="md:col-span-2 space-y-3">

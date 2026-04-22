@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { ArrowRight, Shield, Truck, HeadphonesIcon, Award, Star, Instagram, Youtube, Quote, Share2 } from "lucide-react";
 import { Link } from "react-router-dom";
-import { getProducts } from "@/data/products";
+import { getProducts, getWhatsAppNumber } from "@/data/products";
 import ProductCard from "@/components/ProductCard";
 import ScrollReveal from "@/components/ScrollReveal";
 import logo from "@/assets/logo.jpg";

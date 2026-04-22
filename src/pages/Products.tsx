@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import { getProducts, brands, categories, Product } from "@/data/products";
+import { getProducts, getBrands, getCategories, Product } from "@/data/products";
 import ProductCard from "@/components/ProductCard";
 import ScrollReveal from "@/components/ScrollReveal";
 import { SlidersHorizontal, X, Search } from "lucide-react";
@@ -16,6 +16,8 @@ const Products = () => {
   const [searchQuery, setSearchQuery] = useState("");
 
   const products = getProducts();
+  const brands = useMemo(() => getBrands(), []);
+  const categories = useMemo(() => getCategories(), []);
 
   // Dynamic price ranges based on actual product prices
   const priceRanges = useMemo(() => {

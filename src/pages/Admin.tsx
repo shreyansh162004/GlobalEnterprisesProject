@@ -431,6 +431,34 @@ function fileToDataUrl(file: File): Promise<string> {
   });
 }
 
+// Compress a data URL while preserving its natural aspect ratio (no cropping).
+async function compressDataUrl(dataUrl: string, maxDim = 1600, quality = 0.85): Promise<string> {
+  return new Promise((resolve) => {
+    const img = new window.Image();
+    img.onload = () => {
+      let { width, height } = img;
+      if (width > maxDim || height > maxDim) {
+        const ratio = Math.min(maxDim / width, maxDim / height);
+        width = Math.round(width * ratio);
+        height = Math.round(height * ratio);
+      }
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext("2d")!;
+      ctx.drawImage(img, 0, 0, width, height);
+      let q = quality;
+      let out = canvas.toDataURL("image/jpeg", q);
+      while (out.length > 700 * 1370 && q > 0.2) {
+        q -= 0.1;
+        out = canvas.toDataURL("image/jpeg", q);
+      }
+      resolve(out);
+    };
+    img.src = dataUrl;
+  });
+}
+
 function BannerTab() {
   const [banner, setBannerState] = useState<Banner | null>(null);
   const [rawImage, setRawImage] = useState<string | null>(null);

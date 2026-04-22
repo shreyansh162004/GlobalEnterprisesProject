@@ -1,4 +1,4 @@
-import { Product } from "./products";
+import { Product, getWhatsAppNumber } from "./products";
 
 export interface CartItem {
   product: Product;
@@ -56,5 +56,5 @@ export function getWhatsAppCheckoutLink(cart: CartItem[]): string {
   );
   const total = getCartTotal(cart);
   const message = `Hi! I'd like to order:\n\n${lines.join("\n")}\n\nTotal: ₹${total.toLocaleString("en-IN")}\n\nPlease confirm availability.`;
-  return `https://wa.me/919876543210?text=${encodeURIComponent(message)}`;
+  return `https://wa.me/${getWhatsAppNumber()}?text=${encodeURIComponent(message)}`;
 }

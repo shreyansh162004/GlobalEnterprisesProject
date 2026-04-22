@@ -461,6 +461,13 @@ function BannerTab() {
     toast({ title: "Banner updated — visible on home page" });
   };
 
+  const useOriginal = async () => {
+    if (!rawImage) return;
+    // Compress slightly to keep localStorage footprint reasonable, but keep aspect.
+    const compressed = await compressDataUrl(rawImage, 1600, 0.85);
+    onCropDone(compressed);
+  };
+
   const updateMeta = () => {
     if (!banner) return;
     const updated: Banner = { ...banner, link: link.trim() || undefined, alt: alt.trim() || undefined };

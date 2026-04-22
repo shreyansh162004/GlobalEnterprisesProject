@@ -16,7 +16,7 @@ import {
   getAdminCreds,
   saveAdminCreds,
 } from "@/data/products";
-import { Pencil, Trash2, Plus, LogIn, LogOut, Instagram, Youtube, Link2, Upload, X, Image as ImageIcon, Globe, Tag, MessageCircle, Crop, ShieldCheck, Megaphone } from "lucide-react";
+import { Pencil, Trash2, Plus, LogIn, LogOut, Instagram, Youtube, Link2, Upload, X, Globe, Tag, MessageCircle, ShieldCheck, Megaphone } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import ImageCropper from "@/components/ImageCropper";
 

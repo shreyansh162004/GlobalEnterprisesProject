@@ -10,14 +10,26 @@ import {
   saveBrands,
   getWhatsAppNumber,
   saveWhatsAppNumber,
+  getBanner,
+  saveBanner,
+  Banner,
+  getAdminCreds,
+  saveAdminCreds,
 } from "@/data/products";
-import { Pencil, Trash2, Plus, LogIn, LogOut, Instagram, Youtube, Link2, Upload, X, Image as ImageIcon, Globe, Tag, MessageCircle } from "lucide-react";
+import { Pencil, Trash2, Plus, LogIn, LogOut, Instagram, Youtube, Link2, Upload, X, Image as ImageIcon, Globe, Tag, MessageCircle, Crop, ShieldCheck, Megaphone } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import ImageCropper from "@/components/ImageCropper";
 
-const ADMIN_USER = "admin";
-const ADMIN_PASS = "global2024";
-
-type Tab = "products" | "categories" | "brands" | "whatsapp" | "reels" | "videos" | "channels";
+type Tab =
+  | "products"
+  | "banner"
+  | "categories"
+  | "brands"
+  | "whatsapp"
+  | "reels"
+  | "videos"
+  | "channels"
+  | "credentials";
 
 const Admin = () => {
   const [authenticated, setAuthenticated] = useState(false);
@@ -37,7 +49,8 @@ const Admin = () => {
   }, []);
 
   const handleLogin = () => {
-    if (username === ADMIN_USER && password === ADMIN_PASS) {
+    const creds = getAdminCreds();
+    if (username === creds.username && password === creds.password) {
       setAuthenticated(true);
       localStorage.setItem("ge-admin-auth", "true");
       setProducts(getProducts());
@@ -90,12 +103,14 @@ const Admin = () => {
 
   const tabs: { id: Tab; label: string; icon: typeof Plus }[] = [
     { id: "products", label: "Products", icon: Plus },
+    { id: "banner", label: "Banner", icon: Megaphone },
     { id: "categories", label: "Categories", icon: Tag },
     { id: "brands", label: "Brands", icon: Tag },
     { id: "whatsapp", label: "WhatsApp", icon: MessageCircle },
     { id: "reels", label: "Instagram Reels", icon: Instagram },
     { id: "videos", label: "YouTube Videos", icon: Youtube },
     { id: "channels", label: "Channel Links", icon: Globe },
+    { id: "credentials", label: "Admin Login", icon: ShieldCheck },
   ];
 
   return (
@@ -157,6 +172,8 @@ const Admin = () => {
         {activeTab === "categories" && <ListManagerTab kind="categories" />}
         {activeTab === "brands" && <ListManagerTab kind="brands" />}
         {activeTab === "whatsapp" && <WhatsAppTab />}
+        {activeTab === "banner" && <BannerTab />}
+        {activeTab === "credentials" && <CredentialsTab />}
       </div>
     </div>
   );

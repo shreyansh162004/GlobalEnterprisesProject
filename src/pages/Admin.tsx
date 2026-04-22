@@ -659,30 +659,44 @@ function ProductForm({
   const [uploading, setUploading] = useState(false);
   const [thumbnailIndex, setThumbnailIndex] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [pendingFiles, setPendingFiles] = useState<string[]>([]);
+  const [cropIndex, setCropIndex] = useState(0);
 
   const update = (key: keyof Product, value: any) => setForm({ ...form, [key]: value });
 
   const handleImageUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files?.length) return;
-
-    setUploading(true);
-    const newImages: string[] = [];
-
+    const datas: string[] = [];
     for (const file of Array.from(files)) {
-      try {
-        const compressed = await compressImage(file);
-        newImages.push(compressed);
-      } catch (err) {
-        toast({ title: `Failed to process ${file.name}`, variant: "destructive" });
-      }
+      datas.push(await fileToDataUrl(file));
     }
-
-    setForm((prev) => ({ ...prev, images: [...prev.images, ...newImages] }));
-    setUploading(false);
+    setPendingFiles(datas);
+    setCropIndex(0);
     if (fileInputRef.current) fileInputRef.current.value = "";
-    toast({ title: `${newImages.length} image(s) uploaded & compressed` });
   }, []);
+
+  const handleCropDone = (dataUrl: string) => {
+    setForm((prev) => ({ ...prev, images: [...prev.images, dataUrl] }));
+    if (cropIndex + 1 < pendingFiles.length) {
+      setCropIndex(cropIndex + 1);
+    } else {
+      const total = pendingFiles.length;
+      setPendingFiles([]);
+      setCropIndex(0);
+      toast({ title: `${total} image(s) added` });
+    }
+  };
+
+  const handleCropCancel = () => {
+    // Skip current; if more remain, advance, else close
+    if (cropIndex + 1 < pendingFiles.length) {
+      setCropIndex(cropIndex + 1);
+    } else {
+      setPendingFiles([]);
+      setCropIndex(0);
+    }
+  };
 
   const removeImage = (index: number) => {
     const updated = form.images.filter((_, i) => i !== index);

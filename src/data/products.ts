@@ -18,6 +18,52 @@ const BRANDS_KEY = "ge-brands";
 const CATEGORIES_KEY = "ge-categories";
 const WHATSAPP_KEY = "ge-whatsapp";
 const DEFAULT_WHATSAPP = "919876543210";
+const BANNER_KEY = "ge-banner";
+const ADMIN_CREDS_KEY = "ge-admin-creds";
+
+export interface Banner {
+  image: string; // data URL
+  link?: string;
+  alt?: string;
+}
+
+export function getBanner(): Banner | null {
+  const stored = localStorage.getItem(BANNER_KEY);
+  if (!stored) return null;
+  try {
+    return JSON.parse(stored);
+  } catch {
+    return null;
+  }
+}
+
+export function saveBanner(banner: Banner | null) {
+  if (!banner) localStorage.removeItem(BANNER_KEY);
+  else localStorage.setItem(BANNER_KEY, JSON.stringify(banner));
+  // Notify same-tab listeners
+  window.dispatchEvent(new Event("ge-banner-changed"));
+}
+
+export interface AdminCreds {
+  username: string;
+  password: string;
+}
+
+const DEFAULT_CREDS: AdminCreds = { username: "admin", password: "global2024" };
+
+export function getAdminCreds(): AdminCreds {
+  const stored = localStorage.getItem(ADMIN_CREDS_KEY);
+  if (!stored) return DEFAULT_CREDS;
+  try {
+    return JSON.parse(stored);
+  } catch {
+    return DEFAULT_CREDS;
+  }
+}
+
+export function saveAdminCreds(creds: AdminCreds) {
+  localStorage.setItem(ADMIN_CREDS_KEY, JSON.stringify(creds));
+}
 
 export function getBrands(): string[] {
   const stored = localStorage.getItem(BRANDS_KEY);

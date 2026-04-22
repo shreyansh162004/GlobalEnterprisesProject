@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 import { getProducts, getWhatsAppNumber } from "@/data/products";
 import ProductCard from "@/components/ProductCard";
 import ScrollReveal from "@/components/ScrollReveal";
+import PromoBanner from "@/components/PromoBanner";
 import logo from "@/assets/logo.jpg";
 
 const features = [
@@ -62,6 +63,9 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
+      {/* Promotional Banner (admin-controlled) */}
+      <PromoBanner />
+
       {/* Hero */}
       <section className="relative min-h-screen flex items-center overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-background via-background to-primary/5" />

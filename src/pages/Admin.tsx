@@ -10,14 +10,26 @@ import {
   saveBrands,
   getWhatsAppNumber,
   saveWhatsAppNumber,
+  getBanner,
+  saveBanner,
+  Banner,
+  getAdminCreds,
+  saveAdminCreds,
 } from "@/data/products";
-import { Pencil, Trash2, Plus, LogIn, LogOut, Instagram, Youtube, Link2, Upload, X, Image as ImageIcon, Globe, Tag, MessageCircle } from "lucide-react";
+import { Pencil, Trash2, Plus, LogIn, LogOut, Instagram, Youtube, Link2, Upload, X, Globe, Tag, MessageCircle, ShieldCheck, Megaphone } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import ImageCropper from "@/components/ImageCropper";
 
-const ADMIN_USER = "admin";
-const ADMIN_PASS = "global2024";
-
-type Tab = "products" | "categories" | "brands" | "whatsapp" | "reels" | "videos" | "channels";
+type Tab =
+  | "products"
+  | "banner"
+  | "categories"
+  | "brands"
+  | "whatsapp"
+  | "reels"
+  | "videos"
+  | "channels"
+  | "credentials";
 
 const Admin = () => {
   const [authenticated, setAuthenticated] = useState(false);
@@ -37,7 +49,8 @@ const Admin = () => {
   }, []);
 
   const handleLogin = () => {
-    if (username === ADMIN_USER && password === ADMIN_PASS) {
+    const creds = getAdminCreds();
+    if (username === creds.username && password === creds.password) {
       setAuthenticated(true);
       localStorage.setItem("ge-admin-auth", "true");
       setProducts(getProducts());
@@ -90,12 +103,14 @@ const Admin = () => {
 
   const tabs: { id: Tab; label: string; icon: typeof Plus }[] = [
     { id: "products", label: "Products", icon: Plus },
+    { id: "banner", label: "Banner", icon: Megaphone },
     { id: "categories", label: "Categories", icon: Tag },
     { id: "brands", label: "Brands", icon: Tag },
     { id: "whatsapp", label: "WhatsApp", icon: MessageCircle },
     { id: "reels", label: "Instagram Reels", icon: Instagram },
     { id: "videos", label: "YouTube Videos", icon: Youtube },
     { id: "channels", label: "Channel Links", icon: Globe },
+    { id: "credentials", label: "Admin Login", icon: ShieldCheck },
   ];
 
   return (
@@ -157,6 +172,8 @@ const Admin = () => {
         {activeTab === "categories" && <ListManagerTab kind="categories" />}
         {activeTab === "brands" && <ListManagerTab kind="brands" />}
         {activeTab === "whatsapp" && <WhatsAppTab />}
+        {activeTab === "banner" && <BannerTab />}
+        {activeTab === "credentials" && <CredentialsTab />}
       </div>
     </div>
   );
@@ -405,6 +422,216 @@ async function compressImage(file: File, maxSizeKB = 500): Promise<string> {
   });
 }
 
+function fileToDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = (e) => resolve(e.target?.result as string);
+    r.onerror = reject;
+    r.readAsDataURL(file);
+  });
+}
+
+function BannerTab() {
+  const [banner, setBannerState] = useState<Banner | null>(null);
+  const [rawImage, setRawImage] = useState<string | null>(null);
+  const [link, setLink] = useState("");
+  const [alt, setAlt] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const b = getBanner();
+    setBannerState(b);
+    setLink(b?.link || "");
+    setAlt(b?.alt || "");
+  }, []);
+
+  const onPick = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const data = await fileToDataUrl(file);
+    setRawImage(data);
+    if (inputRef.current) inputRef.current.value = "";
+  };
+
+  const onCropDone = (dataUrl: string) => {
+    const updated: Banner = { image: dataUrl, link: link.trim() || undefined, alt: alt.trim() || undefined };
+    saveBanner(updated);
+    setBannerState(updated);
+    setRawImage(null);
+    toast({ title: "Banner updated — visible on home page" });
+  };
+
+  const updateMeta = () => {
+    if (!banner) return;
+    const updated: Banner = { ...banner, link: link.trim() || undefined, alt: alt.trim() || undefined };
+    saveBanner(updated);
+    setBannerState(updated);
+    toast({ title: "Banner details saved" });
+  };
+
+  const removeBanner = () => {
+    saveBanner(null);
+    setBannerState(null);
+    setLink("");
+    setAlt("");
+    toast({ title: "Banner removed — homepage skips it now" });
+  };
+
+  return (
+    <div className="space-y-6 max-w-3xl">
+      <div>
+        <h2 className="text-lg font-heading font-bold">Homepage Promo Banner</h2>
+        <p className="text-sm text-muted-foreground mt-1">
+          Upload an offer / celebration banner. Use the cropper to fit any aspect — wide for desktop, square or tall for mobile. Remove it anytime and the homepage will skip the section automatically.
+        </p>
+      </div>
+
+      {banner?.image ? (
+        <div className="space-y-4">
+          <div className="rounded-2xl overflow-hidden glass-card">
+            <img src={banner.image} alt={banner.alt || "Banner"} className="w-full h-auto max-h-80 object-cover" />
+          </div>
+          <div className="grid sm:grid-cols-2 gap-3">
+            <input
+              type="text"
+              placeholder="Optional link (e.g. /products or full URL)"
+              value={link}
+              onChange={(e) => setLink(e.target.value)}
+              className="px-4 py-3 rounded-xl bg-secondary border border-border text-sm focus:outline-none focus:border-primary transition-colors"
+            />
+            <input
+              type="text"
+              placeholder="Alt text (for accessibility)"
+              value={alt}
+              onChange={(e) => setAlt(e.target.value)}
+              className="px-4 py-3 rounded-xl bg-secondary border border-border text-sm focus:outline-none focus:border-primary transition-colors"
+            />
+          </div>
+          <div className="flex flex-wrap gap-3">
+            <button onClick={updateMeta} className="btn-premium">Save Details</button>
+            <button onClick={() => inputRef.current?.click()} className="btn-outline-premium inline-flex items-center gap-2">
+              <Upload className="w-4 h-4" /> Replace Image
+            </button>
+            <button
+              onClick={removeBanner}
+              className="px-5 py-3 rounded-xl bg-destructive/15 border border-destructive/40 text-destructive text-sm font-semibold hover:bg-destructive/25 transition-colors inline-flex items-center gap-2"
+            >
+              <Trash2 className="w-4 h-4" /> Remove Banner
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div
+          onClick={() => inputRef.current?.click()}
+          className="border-2 border-dashed border-border rounded-2xl p-10 text-center cursor-pointer hover:border-primary/50 transition-colors"
+        >
+          <Upload className="w-10 h-10 mx-auto text-muted-foreground mb-3" />
+          <p className="text-sm font-medium">Click to upload a banner image</p>
+          <p className="text-xs text-muted-foreground mt-1">Any size — you'll crop it next. JPG / PNG.</p>
+        </div>
+      )}
+
+      <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={onPick} />
+
+      {rawImage && (
+        <ImageCropper
+          image={rawImage}
+          aspect={undefined}
+          title="Crop Banner"
+          onCancel={() => setRawImage(null)}
+          onCropComplete={onCropDone}
+        />
+      )}
+    </div>
+  );
+}
+
+function CredentialsTab() {
+  const [currentPass, setCurrentPass] = useState("");
+  const [newUsername, setNewUsername] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+
+  useEffect(() => {
+    setNewUsername(getAdminCreds().username);
+  }, []);
+
+  const save = () => {
+    const creds = getAdminCreds();
+    if (currentPass !== creds.password) {
+      toast({ title: "Current password is incorrect", variant: "destructive" });
+      return;
+    }
+    if (!newUsername.trim() || newUsername.length < 3) {
+      toast({ title: "Username must be at least 3 characters", variant: "destructive" });
+      return;
+    }
+    if (newPassword.length < 6) {
+      toast({ title: "New password must be at least 6 characters", variant: "destructive" });
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      toast({ title: "Passwords don't match", variant: "destructive" });
+      return;
+    }
+    saveAdminCreds({ username: newUsername.trim(), password: newPassword });
+    setCurrentPass("");
+    setNewPassword("");
+    setConfirmPassword("");
+    toast({ title: "Credentials updated — use them on next login" });
+  };
+
+  return (
+    <div className="space-y-6 max-w-lg">
+      <div>
+        <h2 className="text-lg font-heading font-bold">Admin Login Credentials</h2>
+        <p className="text-sm text-muted-foreground mt-1">
+          Change your admin username and password. Stored locally on this device.
+        </p>
+      </div>
+      <div className="space-y-3">
+        <div>
+          <label className="text-xs font-medium text-muted-foreground mb-1 block">Current Password</label>
+          <input
+            type="password"
+            value={currentPass}
+            onChange={(e) => setCurrentPass(e.target.value)}
+            className="w-full px-4 py-3 rounded-xl bg-secondary border border-border text-sm focus:outline-none focus:border-primary transition-colors"
+          />
+        </div>
+        <div>
+          <label className="text-xs font-medium text-muted-foreground mb-1 block">New Username</label>
+          <input
+            type="text"
+            value={newUsername}
+            onChange={(e) => setNewUsername(e.target.value)}
+            className="w-full px-4 py-3 rounded-xl bg-secondary border border-border text-sm focus:outline-none focus:border-primary transition-colors"
+          />
+        </div>
+        <div>
+          <label className="text-xs font-medium text-muted-foreground mb-1 block">New Password</label>
+          <input
+            type="password"
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
+            className="w-full px-4 py-3 rounded-xl bg-secondary border border-border text-sm focus:outline-none focus:border-primary transition-colors"
+          />
+        </div>
+        <div>
+          <label className="text-xs font-medium text-muted-foreground mb-1 block">Confirm New Password</label>
+          <input
+            type="password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            className="w-full px-4 py-3 rounded-xl bg-secondary border border-border text-sm focus:outline-none focus:border-primary transition-colors"
+          />
+        </div>
+      </div>
+      <button onClick={save} className="btn-premium">Update Credentials</button>
+    </div>
+  );
+}
+
 function ProductForm({
   product,
   onSave,
@@ -432,30 +659,44 @@ function ProductForm({
   const [uploading, setUploading] = useState(false);
   const [thumbnailIndex, setThumbnailIndex] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [pendingFiles, setPendingFiles] = useState<string[]>([]);
+  const [cropIndex, setCropIndex] = useState(0);
 
   const update = (key: keyof Product, value: any) => setForm({ ...form, [key]: value });
 
   const handleImageUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files?.length) return;
-
-    setUploading(true);
-    const newImages: string[] = [];
-
+    const datas: string[] = [];
     for (const file of Array.from(files)) {
-      try {
-        const compressed = await compressImage(file);
-        newImages.push(compressed);
-      } catch (err) {
-        toast({ title: `Failed to process ${file.name}`, variant: "destructive" });
-      }
+      datas.push(await fileToDataUrl(file));
     }
-
-    setForm((prev) => ({ ...prev, images: [...prev.images, ...newImages] }));
-    setUploading(false);
+    setPendingFiles(datas);
+    setCropIndex(0);
     if (fileInputRef.current) fileInputRef.current.value = "";
-    toast({ title: `${newImages.length} image(s) uploaded & compressed` });
   }, []);
+
+  const handleCropDone = (dataUrl: string) => {
+    setForm((prev) => ({ ...prev, images: [...prev.images, dataUrl] }));
+    if (cropIndex + 1 < pendingFiles.length) {
+      setCropIndex(cropIndex + 1);
+    } else {
+      const total = pendingFiles.length;
+      setPendingFiles([]);
+      setCropIndex(0);
+      toast({ title: `${total} image(s) added` });
+    }
+  };
+
+  const handleCropCancel = () => {
+    // Skip current; if more remain, advance, else close
+    if (cropIndex + 1 < pendingFiles.length) {
+      setCropIndex(cropIndex + 1);
+    } else {
+      setPendingFiles([]);
+      setCropIndex(0);
+    }
+  };
 
   const removeImage = (index: number) => {
     const updated = form.images.filter((_, i) => i !== index);
@@ -512,9 +753,9 @@ function ProductForm({
           >
             <Upload className="w-8 h-8 mx-auto text-muted-foreground mb-2" />
             <p className="text-sm text-muted-foreground">
-              {uploading ? "Compressing..." : "Click to upload images"}
+              Click to upload images
             </p>
-            <p className="text-xs text-muted-foreground/60 mt-1">Supports multiple images • Auto-compressed</p>
+            <p className="text-xs text-muted-foreground/60 mt-1">Multiple images • You'll crop each one</p>
           </div>
           <input ref={fileInputRef} type="file" accept="image/*" multiple onChange={handleImageUpload} className="hidden" />
 
@@ -546,6 +787,15 @@ function ProductForm({
         <button onClick={handleSave} className="btn-premium">Save Product</button>
         <button onClick={onCancel} className="px-6 py-3 rounded-xl bg-secondary text-sm font-medium hover:bg-secondary/80 transition-colors">Cancel</button>
       </div>
+      {pendingFiles.length > 0 && pendingFiles[cropIndex] && (
+        <ImageCropper
+          image={pendingFiles[cropIndex]}
+          aspect={undefined}
+          title={`Crop image ${cropIndex + 1} of ${pendingFiles.length}`}
+          onCancel={handleCropCancel}
+          onCropComplete={handleCropDone}
+        />
+      )}
     </motion.div>
   );
 }

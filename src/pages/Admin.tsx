@@ -753,9 +753,9 @@ function ProductForm({
           >
             <Upload className="w-8 h-8 mx-auto text-muted-foreground mb-2" />
             <p className="text-sm text-muted-foreground">
-              {uploading ? "Compressing..." : "Click to upload images"}
+              Click to upload images
             </p>
-            <p className="text-xs text-muted-foreground/60 mt-1">Supports multiple images • Auto-compressed</p>
+            <p className="text-xs text-muted-foreground/60 mt-1">Multiple images • You'll crop each one</p>
           </div>
           <input ref={fileInputRef} type="file" accept="image/*" multiple onChange={handleImageUpload} className="hidden" />
 
@@ -787,6 +787,15 @@ function ProductForm({
         <button onClick={handleSave} className="btn-premium">Save Product</button>
         <button onClick={onCancel} className="px-6 py-3 rounded-xl bg-secondary text-sm font-medium hover:bg-secondary/80 transition-colors">Cancel</button>
       </div>
+      {pendingFiles.length > 0 && pendingFiles[cropIndex] && (
+        <ImageCropper
+          image={pendingFiles[cropIndex]}
+          aspect={undefined}
+          title={`Crop image ${cropIndex + 1} of ${pendingFiles.length}`}
+          onCancel={handleCropCancel}
+          onCropComplete={handleCropDone}
+        />
+      )}
     </motion.div>
   );
 }

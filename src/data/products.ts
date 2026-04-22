@@ -14,6 +14,42 @@ export const brands = ["HP", "Dell", "Lenovo", "Apple", "Asus", "Acer", "MSI"];
 
 export const categories = ["Laptop", "Desktop", "Monitor", "Accessories", "Printer", "Networking"];
 
+const BRANDS_KEY = "ge-brands";
+const CATEGORIES_KEY = "ge-categories";
+const WHATSAPP_KEY = "ge-whatsapp";
+const DEFAULT_WHATSAPP = "919876543210";
+
+export function getBrands(): string[] {
+  const stored = localStorage.getItem(BRANDS_KEY);
+  if (stored) return JSON.parse(stored);
+  localStorage.setItem(BRANDS_KEY, JSON.stringify(brands));
+  return brands;
+}
+
+export function saveBrands(list: string[]) {
+  localStorage.setItem(BRANDS_KEY, JSON.stringify(list));
+}
+
+export function getCategories(): string[] {
+  const stored = localStorage.getItem(CATEGORIES_KEY);
+  if (stored) return JSON.parse(stored);
+  localStorage.setItem(CATEGORIES_KEY, JSON.stringify(categories));
+  return categories;
+}
+
+export function saveCategories(list: string[]) {
+  localStorage.setItem(CATEGORIES_KEY, JSON.stringify(list));
+}
+
+export function getWhatsAppNumber(): string {
+  return localStorage.getItem(WHATSAPP_KEY) || DEFAULT_WHATSAPP;
+}
+
+export function saveWhatsAppNumber(num: string) {
+  // Strip non-digits
+  localStorage.setItem(WHATSAPP_KEY, num.replace(/\D/g, ""));
+}
+
 export const defaultProducts: Product[] = [
   {
     id: "1",

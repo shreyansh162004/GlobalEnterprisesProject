@@ -524,14 +524,18 @@ function BannerTab() {
       <div>
         <h2 className="text-lg font-heading font-bold">Homepage Promo Banner</h2>
         <p className="text-sm text-muted-foreground mt-1">
-          Upload an offer / celebration banner. Use the cropper to fit any aspect — wide for desktop, square or tall for mobile. Remove it anytime and the homepage will skip the section automatically.
+          Upload any image — landscape, portrait or square. It will be shown at its natural aspect ratio on the homepage (right below the hero). Remove it anytime and the section disappears automatically.
         </p>
       </div>
 
       {banner?.image ? (
         <div className="space-y-4">
-          <div className="rounded-2xl overflow-hidden glass-card">
-            <img src={banner.image} alt={banner.alt || "Banner"} className="w-full h-auto max-h-80 object-cover" />
+          <div className="rounded-2xl overflow-hidden glass-card flex items-center justify-center bg-black/20 p-2">
+            <img
+              src={banner.image}
+              alt={banner.alt || "Banner"}
+              className="w-auto h-auto max-w-full max-h-80 object-contain rounded-lg"
+            />
           </div>
           <div className="grid sm:grid-cols-2 gap-3">
             <input
@@ -555,6 +559,12 @@ function BannerTab() {
               <Upload className="w-4 h-4" /> Replace Image
             </button>
             <button
+              onClick={openCropper}
+              className="px-5 py-3 rounded-xl bg-secondary border border-border text-sm font-semibold hover:bg-secondary/80 transition-colors"
+            >
+              Crop (Optional)
+            </button>
+            <button
               onClick={removeBanner}
               className="px-5 py-3 rounded-xl bg-destructive/15 border border-destructive/40 text-destructive text-sm font-semibold hover:bg-destructive/25 transition-colors inline-flex items-center gap-2"
             >
@@ -569,7 +579,9 @@ function BannerTab() {
         >
           <Upload className="w-10 h-10 mx-auto text-muted-foreground mb-3" />
           <p className="text-sm font-medium">Click to upload a banner image</p>
-          <p className="text-xs text-muted-foreground mt-1">Any size — you'll crop it next. JPG / PNG.</p>
+          <p className="text-xs text-muted-foreground mt-1">
+            Any size or aspect — uploaded as-is. JPG / PNG.
+          </p>
         </div>
       )}
 

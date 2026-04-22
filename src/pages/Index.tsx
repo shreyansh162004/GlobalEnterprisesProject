@@ -63,9 +63,6 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      {/* Promotional Banner (admin-controlled) */}
-      <PromoBanner />
-
       {/* Hero */}
       <section className="relative min-h-screen flex items-center overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-background via-background to-primary/5" />
@@ -152,6 +149,9 @@ const Index = () => {
           </div>
         </div>
       </section>
+
+      {/* Promotional Banner (admin-controlled) — sits right below the hero */}
+      <PromoBanner />
 
       {/* Featured Products */}
       <section className="py-20 md:py-28">

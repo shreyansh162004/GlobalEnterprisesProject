@@ -431,6 +431,34 @@ function fileToDataUrl(file: File): Promise<string> {
   });
 }
 
+// Compress a data URL while preserving its natural aspect ratio (no cropping).
+async function compressDataUrl(dataUrl: string, maxDim = 1600, quality = 0.85): Promise<string> {
+  return new Promise((resolve) => {
+    const img = new window.Image();
+    img.onload = () => {
+      let { width, height } = img;
+      if (width > maxDim || height > maxDim) {
+        const ratio = Math.min(maxDim / width, maxDim / height);
+        width = Math.round(width * ratio);
+        height = Math.round(height * ratio);
+      }
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext("2d")!;
+      ctx.drawImage(img, 0, 0, width, height);
+      let q = quality;
+      let out = canvas.toDataURL("image/jpeg", q);
+      while (out.length > 700 * 1370 && q > 0.2) {
+        q -= 0.1;
+        out = canvas.toDataURL("image/jpeg", q);
+      }
+      resolve(out);
+    };
+    img.src = dataUrl;
+  });
+}
+
 function BannerTab() {
   const [banner, setBannerState] = useState<Banner | null>(null);
   const [rawImage, setRawImage] = useState<string | null>(null);
@@ -449,8 +477,22 @@ function BannerTab() {
     const file = e.target.files?.[0];
     if (!file) return;
     const data = await fileToDataUrl(file);
-    setRawImage(data);
+    // Save banner immediately at its natural aspect ratio (compressed only).
+    const compressed = await compressDataUrl(data, 1600, 0.85);
+    const updated: Banner = {
+      image: compressed,
+      link: link.trim() || undefined,
+      alt: alt.trim() || undefined,
+    };
+    saveBanner(updated);
+    setBannerState(updated);
+    toast({ title: "Banner uploaded — displayed at its original size" });
     if (inputRef.current) inputRef.current.value = "";
+  };
+
+  const openCropper = () => {
+    // Optional: let admin re-crop the existing banner if they want to.
+    if (banner?.image) setRawImage(banner.image);
   };
 
   const onCropDone = (dataUrl: string) => {
@@ -458,7 +500,7 @@ function BannerTab() {
     saveBanner(updated);
     setBannerState(updated);
     setRawImage(null);
-    toast({ title: "Banner updated — visible on home page" });
+    toast({ title: "Banner cropped and saved" });
   };
 
   const updateMeta = () => {
@@ -482,14 +524,18 @@ function BannerTab() {
       <div>
         <h2 className="text-lg font-heading font-bold">Homepage Promo Banner</h2>
         <p className="text-sm text-muted-foreground mt-1">
-          Upload an offer / celebration banner. Use the cropper to fit any aspect — wide for desktop, square or tall for mobile. Remove it anytime and the homepage will skip the section automatically.
+          Upload any image — landscape, portrait or square. It will be shown at its natural aspect ratio on the homepage (right below the hero). Remove it anytime and the section disappears automatically.
         </p>
       </div>
 
       {banner?.image ? (
         <div className="space-y-4">
-          <div className="rounded-2xl overflow-hidden glass-card">
-            <img src={banner.image} alt={banner.alt || "Banner"} className="w-full h-auto max-h-80 object-cover" />
+          <div className="rounded-2xl overflow-hidden glass-card flex items-center justify-center bg-black/20 p-2">
+            <img
+              src={banner.image}
+              alt={banner.alt || "Banner"}
+              className="w-auto h-auto max-w-full max-h-80 object-contain rounded-lg"
+            />
           </div>
           <div className="grid sm:grid-cols-2 gap-3">
             <input
@@ -513,6 +559,12 @@ function BannerTab() {
               <Upload className="w-4 h-4" /> Replace Image
             </button>
             <button
+              onClick={openCropper}
+              className="px-5 py-3 rounded-xl bg-secondary border border-border text-sm font-semibold hover:bg-secondary/80 transition-colors"
+            >
+              Crop (Optional)
+            </button>
+            <button
               onClick={removeBanner}
               className="px-5 py-3 rounded-xl bg-destructive/15 border border-destructive/40 text-destructive text-sm font-semibold hover:bg-destructive/25 transition-colors inline-flex items-center gap-2"
             >
@@ -527,7 +579,9 @@ function BannerTab() {
         >
           <Upload className="w-10 h-10 mx-auto text-muted-foreground mb-3" />
           <p className="text-sm font-medium">Click to upload a banner image</p>
-          <p className="text-xs text-muted-foreground mt-1">Any size — you'll crop it next. JPG / PNG.</p>
+          <p className="text-xs text-muted-foreground mt-1">
+            Any size or aspect — uploaded as-is. JPG / PNG.
+          </p>
         </div>
       )}
 

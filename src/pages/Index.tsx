@@ -116,7 +116,7 @@ const Index = () => {
                   Shop Now <ArrowRight className="w-4 h-4" />
                 </Link>
                 <a
-                  href="https://wa.me/919876543210"
+                  href={`https://wa.me/${getWhatsAppNumber()}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="btn-outline-premium inline-flex items-center gap-2"
@@ -398,7 +398,7 @@ const Index = () => {
                 Chat with our experts on WhatsApp and get personalized recommendations instantly.
               </p>
               <a
-                href="https://wa.me/919876543210"
+                href={`https://wa.me/${getWhatsAppNumber()}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="btn-premium inline-flex items-center gap-2"

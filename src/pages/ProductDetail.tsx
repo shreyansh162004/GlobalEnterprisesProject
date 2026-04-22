@@ -2,7 +2,7 @@ import { useParams, Link } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft, ShoppingCart, MessageCircle, Share2, ChevronLeft, ChevronRight } from "lucide-react";
-import { getProducts } from "@/data/products";
+import { getProducts, getWhatsAppNumber } from "@/data/products";
 import { addToCart } from "@/data/cart";
 import ProductCard from "@/components/ProductCard";
 import ScrollReveal from "@/components/ScrollReveal";
@@ -68,7 +68,7 @@ const ProductDetail = () => {
     .sort((a, b) => a.price - b.price)
     .slice(0, 4);
 
-  const whatsappLink = `https://wa.me/919876543210?text=${encodeURIComponent(
+  const whatsappLink = `https://wa.me/${getWhatsAppNumber()}?text=${encodeURIComponent(
     `Hi! I'm interested in ${product.name} (₹${product.price.toLocaleString("en-IN")}). Is it available?`
   )}`;
 

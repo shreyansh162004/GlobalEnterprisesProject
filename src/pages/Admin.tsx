@@ -1,13 +1,23 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion } from "framer-motion";
-import { getProducts, saveProducts, Product, brands, categories } from "@/data/products";
-import { Pencil, Trash2, Plus, LogIn, LogOut, Instagram, Youtube, Link2, Upload, X, Image as ImageIcon, Globe } from "lucide-react";
+import {
+  getProducts,
+  saveProducts,
+  Product,
+  getBrands,
+  getCategories,
+  saveCategories,
+  saveBrands,
+  getWhatsAppNumber,
+  saveWhatsAppNumber,
+} from "@/data/products";
+import { Pencil, Trash2, Plus, LogIn, LogOut, Instagram, Youtube, Link2, Upload, X, Image as ImageIcon, Globe, Tag, MessageCircle } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
 const ADMIN_USER = "admin";
 const ADMIN_PASS = "global2024";
 
-type Tab = "products" | "reels" | "videos" | "channels";
+type Tab = "products" | "categories" | "brands" | "whatsapp" | "reels" | "videos" | "channels";
 
 const Admin = () => {
   const [authenticated, setAuthenticated] = useState(false);
@@ -80,6 +90,9 @@ const Admin = () => {
 
   const tabs: { id: Tab; label: string; icon: typeof Plus }[] = [
     { id: "products", label: "Products", icon: Plus },
+    { id: "categories", label: "Categories", icon: Tag },
+    { id: "brands", label: "Brands", icon: Tag },
+    { id: "whatsapp", label: "WhatsApp", icon: MessageCircle },
     { id: "reels", label: "Instagram Reels", icon: Instagram },
     { id: "videos", label: "YouTube Videos", icon: Youtube },
     { id: "channels", label: "Channel Links", icon: Globe },
@@ -141,10 +154,121 @@ const Admin = () => {
         {activeTab === "reels" && <MediaLinksTab type="reels" />}
         {activeTab === "videos" && <MediaLinksTab type="videos" />}
         {activeTab === "channels" && <ChannelLinksTab />}
+        {activeTab === "categories" && <ListManagerTab kind="categories" />}
+        {activeTab === "brands" && <ListManagerTab kind="brands" />}
+        {activeTab === "whatsapp" && <WhatsAppTab />}
       </div>
     </div>
   );
 };
+
+function WhatsAppTab() {
+  const [number, setNumber] = useState("");
+
+  useEffect(() => {
+    setNumber(getWhatsAppNumber());
+  }, []);
+
+  const save = () => {
+    const cleaned = number.replace(/\D/g, "");
+    if (cleaned.length < 10) {
+      toast({ title: "Enter a valid number with country code", variant: "destructive" });
+      return;
+    }
+    saveWhatsAppNumber(cleaned);
+    toast({ title: "WhatsApp number updated!" });
+  };
+
+  return (
+    <div className="space-y-6 max-w-lg">
+      <h2 className="text-lg font-heading font-bold">WhatsApp Contact Number</h2>
+      <p className="text-sm text-muted-foreground">
+        This number is used for all WhatsApp redirections — product enquiries, cart checkout, and the "Chat on WhatsApp" buttons.
+      </p>
+      <div>
+        <label className="text-xs font-medium text-muted-foreground mb-1 block">
+          Number with country code (e.g. 919876543210)
+        </label>
+        <input
+          type="tel"
+          placeholder="919876543210"
+          value={number}
+          onChange={(e) => setNumber(e.target.value)}
+          className="w-full px-4 py-3 rounded-xl bg-secondary border border-border text-sm focus:outline-none focus:border-primary transition-colors"
+        />
+      </div>
+      <button onClick={save} className="btn-premium">Save Number</button>
+    </div>
+  );
+}
+
+function ListManagerTab({ kind }: { kind: "categories" | "brands" }) {
+  const [items, setItems] = useState<string[]>([]);
+  const [newItem, setNewItem] = useState("");
+
+  const load = () => setItems(kind === "categories" ? getCategories() : getBrands());
+  useEffect(load, [kind]);
+
+  const persist = (list: string[]) => {
+    if (kind === "categories") saveCategories(list);
+    else saveBrands(list);
+    setItems(list);
+  };
+
+  const add = () => {
+    const trimmed = newItem.trim();
+    if (!trimmed) return;
+    if (items.some((i) => i.toLowerCase() === trimmed.toLowerCase())) {
+      toast({ title: "Already exists", variant: "destructive" });
+      return;
+    }
+    persist([...items, trimmed]);
+    setNewItem("");
+    toast({ title: `${kind === "categories" ? "Category" : "Brand"} added` });
+  };
+
+  const remove = (item: string) => {
+    persist(items.filter((i) => i !== item));
+    toast({ title: "Removed" });
+  };
+
+  const label = kind === "categories" ? "Category" : "Brand";
+
+  return (
+    <div className="space-y-6 max-w-2xl">
+      <h2 className="text-lg font-heading font-bold">Manage {label}s</h2>
+      <p className="text-sm text-muted-foreground">
+        These appear in the product form and on the Products filter page.
+      </p>
+      <div className="flex gap-3">
+        <input
+          type="text"
+          placeholder={`New ${label.toLowerCase()} name...`}
+          value={newItem}
+          onChange={(e) => setNewItem(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && add()}
+          className="flex-1 px-4 py-3 rounded-xl bg-secondary border border-border text-sm focus:outline-none focus:border-primary transition-colors"
+        />
+        <button onClick={add} className="btn-premium px-6">
+          <Plus className="w-4 h-4" />
+        </button>
+      </div>
+      <div className="flex flex-wrap gap-2">
+        {items.length === 0 && (
+          <p className="text-sm text-muted-foreground">No {label.toLowerCase()}s yet.</p>
+        )}
+        {items.map((item) => (
+          <div key={item} className="glass-card flex items-center gap-2 pl-4 pr-2 py-2 rounded-xl">
+            <span className="text-sm font-medium">{item}</span>
+            <button onClick={() => remove(item)} className="p-1.5 hover:bg-destructive/20 rounded-lg transition-colors">
+              <X className="w-3.5 h-3.5 text-destructive" />
+            </button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 function ChannelLinksTab() {
   const [instagram, setInstagram] = useState("");
@@ -290,13 +414,15 @@ function ProductForm({
   onSave: (p: Product) => void;
   onCancel: () => void;
 }) {
+  const brandList = getBrands();
+  const categoryList = getCategories();
   const [form, setForm] = useState<Product>(
     product || {
       id: "",
       name: "",
       price: 0,
-      brand: brands[0],
-      category: categories[0],
+      brand: brandList[0] || "",
+      category: categoryList[0] || "",
       specs: "",
       description: "",
       images: [],
@@ -362,16 +488,20 @@ function ProductForm({
         <div>
           <h4 className="text-xs font-medium text-muted-foreground mb-2">Brand</h4>
           <div className="flex flex-wrap gap-2">
-            {[...brands, "Other"].map((b) => (
+            {[...brandList, "Other"].map((b) => (
               <button key={b} type="button" onClick={() => update("brand", b)} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${form.brand === b ? "bg-primary text-primary-foreground" : "bg-secondary hover:bg-secondary/80 border border-border"}`}>
                 {b}
               </button>
             ))}
           </div>
         </div>
-        <select value={form.category} onChange={(e) => update("category", e.target.value)} className="px-4 py-3 rounded-xl bg-secondary border border-border text-sm focus:outline-none focus:border-primary transition-colors">
-          {categories.map((c) => <option key={c} value={c}>{c}</option>)}
-        </select>
+        <div>
+          <h4 className="text-xs font-medium text-muted-foreground mb-2">Category</h4>
+          <select value={form.category} onChange={(e) => update("category", e.target.value)} className="w-full px-4 py-3 rounded-xl bg-secondary border border-border text-sm focus:outline-none focus:border-primary transition-colors">
+            {categoryList.map((c) => <option key={c} value={c}>{c}</option>)}
+          </select>
+          <p className="text-[10px] text-muted-foreground/70 mt-1.5">Manage categories from the Categories tab.</p>
+        </div>
 
         {/* Image Upload */}
         <div className="md:col-span-2 space-y-3">

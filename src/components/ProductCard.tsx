@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { ShoppingCart, MessageCircle, Share2 } from "lucide-react";
-import { Product } from "@/data/products";
+import { Product, getWhatsAppNumber } from "@/data/products";
 import { addToCart } from "@/data/cart";
 import { Link } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
@@ -30,7 +30,7 @@ const ProductCard = ({ product, index = 0 }: ProductCardProps) => {
     }
   };
 
-  const whatsappLink = `https://wa.me/919876543210?text=${encodeURIComponent(
+  const whatsappLink = `https://wa.me/${getWhatsAppNumber()}?text=${encodeURIComponent(
     `Hi! I'm interested in ${product.name} (₹${product.price.toLocaleString("en-IN")}). Is it available?`
   )}`;
 

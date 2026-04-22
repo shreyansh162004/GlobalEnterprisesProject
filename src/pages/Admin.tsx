@@ -477,8 +477,22 @@ function BannerTab() {
     const file = e.target.files?.[0];
     if (!file) return;
     const data = await fileToDataUrl(file);
-    setRawImage(data);
+    // Save banner immediately at its natural aspect ratio (compressed only).
+    const compressed = await compressDataUrl(data, 1600, 0.85);
+    const updated: Banner = {
+      image: compressed,
+      link: link.trim() || undefined,
+      alt: alt.trim() || undefined,
+    };
+    saveBanner(updated);
+    setBannerState(updated);
+    toast({ title: "Banner uploaded — displayed at its original size" });
     if (inputRef.current) inputRef.current.value = "";
+  };
+
+  const openCropper = () => {
+    // Optional: let admin re-crop the existing banner if they want to.
+    if (banner?.image) setRawImage(banner.image);
   };
 
   const onCropDone = (dataUrl: string) => {
@@ -486,14 +500,7 @@ function BannerTab() {
     saveBanner(updated);
     setBannerState(updated);
     setRawImage(null);
-    toast({ title: "Banner updated — visible on home page" });
-  };
-
-  const useOriginal = async () => {
-    if (!rawImage) return;
-    // Compress slightly to keep localStorage footprint reasonable, but keep aspect.
-    const compressed = await compressDataUrl(rawImage, 1600, 0.85);
-    onCropDone(compressed);
+    toast({ title: "Banner cropped and saved" });
   };
 
   const updateMeta = () => {

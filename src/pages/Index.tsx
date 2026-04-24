@@ -6,6 +6,7 @@ import { getProducts, getWhatsAppNumber } from "@/data/products";
 import ProductCard from "@/components/ProductCard";
 import ScrollReveal from "@/components/ScrollReveal";
 import PromoBanner from "@/components/PromoBanner";
+import SEO, { localBusinessSchema } from "@/components/SEO";
 import logo from "@/assets/logo.jpg";
 
 const features = [

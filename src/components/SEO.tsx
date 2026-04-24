@@ -1,6 +1,6 @@
 import { Helmet } from "react-helmet-async";
 
-const SITE_URL = "https://globalenterprises.lovable.app";
+export const SITE_URL = "https://globalenterprises.in";
 const DEFAULT_IMAGE = `${SITE_URL}/favicon.png`;
 
 const DEFAULT_KEYWORDS = [

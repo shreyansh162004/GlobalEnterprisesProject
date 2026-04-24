@@ -6,7 +6,7 @@ import ProductCard from "@/components/ProductCard";
 import ScrollReveal from "@/components/ScrollReveal";
 import { SlidersHorizontal, X, Search } from "lucide-react";
 import Fuse from "fuse.js";
-import SEO from "@/components/SEO";
+import SEO, { SITE_URL } from "@/components/SEO";
 
 const Products = () => {
   const [searchParams] = useSearchParams();
@@ -110,7 +110,7 @@ const Products = () => {
           "@type": "CollectionPage",
           name: "Refurbished Laptops Collection",
           description: "Second hand laptops, refurbished HP, Dell, Lenovo and gaming laptops in Jabalpur.",
-          url: "https://globalenterprises.lovable.app/products",
+          url: `${SITE_URL}/products`,
         }}
       />
       <div className="container mx-auto px-4">

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/0.9">
+  <url>
+    <loc>https://globalenterprises.in/</loc>
+    <image:image>
+      <image:loc>https://globalenterprises.in/favicon.png</image:loc>
+      <image:title>Global Enterprises – Second Hand Laptop Shop Jabalpur</image:title>
+      <image:caption>Refurbished and used laptops with warranty in Jabalpur</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://globalenterprises.in/products/1</loc>
+    <image:image><image:loc>https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=600</image:loc><image:title>HP Pavilion 15 – Used HP Laptop Jabalpur</image:title></image:image>
+  </url>
+  <url>
+    <loc>https://globalenterprises.in/products/2</loc>
+    <image:image><image:loc>https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=600</image:loc><image:title>Dell Inspiron 14 – Used Dell Laptop Jabalpur</image:title></image:image>
+  </url>
+  <url>
+    <loc>https://globalenterprises.in/products/3</loc>
+    <image:image><image:loc>https://images.unsplash.com/photo-1525547719571-a2d4ac8945e2?w=600</image:loc><image:title>Lenovo IdeaPad Slim 3 – Used Lenovo Laptop Jabalpur</image:title></image:image>
+  </url>
+  <url>
+    <loc>https://globalenterprises.in/products/4</loc>
+    <image:image><image:loc>https://images.unsplash.com/photo-1593642702821-c8da6771f0c6?w=600</image:loc><image:title>Asus ROG Strix G15 – Second Hand Gaming Laptop Jabalpur</image:title></image:image>
+  </url>
+</urlset>

@@ -17,4 +17,8 @@ Allow: /
 User-agent: facebookexternalhit
 Allow: /
 
-Sitemap: https://globalenterprises.lovable.app/sitemap.xml
+Sitemap: https://globalenterprises.in/sitemap.xml
+Sitemap: https://globalenterprises.in/sitemap-index.xml
+Sitemap: https://globalenterprises.in/sitemap-pages.xml
+Sitemap: https://globalenterprises.in/sitemap-products.xml
+Sitemap: https://globalenterprises.in/sitemap-images.xml

@@ -6,6 +6,7 @@ import { getProducts, getWhatsAppNumber } from "@/data/products";
 import ProductCard from "@/components/ProductCard";
 import ScrollReveal from "@/components/ScrollReveal";
 import PromoBanner from "@/components/PromoBanner";
+import SEO, { localBusinessSchema } from "@/components/SEO";
 import logo from "@/assets/logo.jpg";
 
 const features = [
@@ -63,6 +64,25 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
+      <SEO
+        title="Global Enterprises – Second Hand Laptop Shop in Jabalpur"
+        description="Buy refurbished & second hand laptops in Jabalpur at Global Enterprises. Used HP, Dell, Lenovo with warranty. Rasal Chowk, Jain Tower, near Hotel Samdariya."
+        path="/"
+        jsonLd={[
+          localBusinessSchema,
+          {
+            "@context": "https://schema.org",
+            "@type": "WebSite",
+            name: "Global Enterprises",
+            url: "https://globalenterprises.lovable.app/",
+            potentialAction: {
+              "@type": "SearchAction",
+              target: "https://globalenterprises.lovable.app/products?search={query}",
+              "query-input": "required name=query",
+            },
+          },
+        ]}
+      />
       {/* Hero */}
       <section className="relative min-h-screen flex items-center overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-background via-background to-primary/5" />

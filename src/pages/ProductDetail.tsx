@@ -7,6 +7,7 @@ import { addToCart } from "@/data/cart";
 import ProductCard from "@/components/ProductCard";
 import ScrollReveal from "@/components/ScrollReveal";
 import { toast } from "@/hooks/use-toast";
+import SEO from "@/components/SEO";
 
 const ProductDetail = () => {
   const { id } = useParams();
@@ -74,6 +75,35 @@ const ProductDetail = () => {
 
   return (
     <div className="min-h-screen pt-24 pb-24 md:pb-16">
+      <SEO
+        title={`${product.name} – ${product.brand} | Global Enterprises Jabalpur`}
+        description={`Buy ${product.name} (${product.brand}) at Global Enterprises Jabalpur for ₹${product.price.toLocaleString("en-IN")}. ${product.specs?.slice(0, 90) || ""}`}
+        path={`/products/${product.id}`}
+        image={images[0]}
+        type="product"
+        keywords={[
+          `used ${product.brand.toLowerCase()} laptop jabalpur`,
+          `${product.name.toLowerCase()} jabalpur`,
+          `second hand ${product.brand.toLowerCase()} jabalpur`,
+        ]}
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "Product",
+          name: product.name,
+          description: product.description,
+          image: images,
+          brand: { "@type": "Brand", name: product.brand },
+          category: product.category,
+          offers: {
+            "@type": "Offer",
+            price: product.price,
+            priceCurrency: "INR",
+            availability: "https://schema.org/InStock",
+            url: `https://globalenterprises.lovable.app/products/${product.id}`,
+            seller: { "@type": "Organization", name: "Global Enterprises" },
+          },
+        }}
+      />
       <div className="container mx-auto px-4">
         <Link to="/products" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary mb-8 font-medium">
           <ArrowLeft className="w-4 h-4" /> Back to products

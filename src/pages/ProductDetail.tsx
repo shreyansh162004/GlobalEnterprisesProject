@@ -7,7 +7,7 @@ import { addToCart } from "@/data/cart";
 import ProductCard from "@/components/ProductCard";
 import ScrollReveal from "@/components/ScrollReveal";
 import { toast } from "@/hooks/use-toast";
-import SEO from "@/components/SEO";
+import SEO, { SITE_URL } from "@/components/SEO";
 
 const ProductDetail = () => {
   const { id } = useParams();
@@ -99,7 +99,7 @@ const ProductDetail = () => {
             price: product.price,
             priceCurrency: "INR",
             availability: "https://schema.org/InStock",
-            url: `https://globalenterprises.lovable.app/products/${product.id}`,
+            url: `${SITE_URL}/products/${product.id}`,
             seller: { "@type": "Organization", name: "Global Enterprises" },
           },
         }}

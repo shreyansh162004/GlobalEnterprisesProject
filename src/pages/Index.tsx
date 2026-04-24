@@ -6,7 +6,7 @@ import { getProducts, getWhatsAppNumber } from "@/data/products";
 import ProductCard from "@/components/ProductCard";
 import ScrollReveal from "@/components/ScrollReveal";
 import PromoBanner from "@/components/PromoBanner";
-import SEO, { localBusinessSchema } from "@/components/SEO";
+import SEO, { localBusinessSchema, SITE_URL } from "@/components/SEO";
 import logo from "@/assets/logo.jpg";
 
 const features = [
@@ -74,10 +74,10 @@ const Index = () => {
             "@context": "https://schema.org",
             "@type": "WebSite",
             name: "Global Enterprises",
-            url: "https://globalenterprises.lovable.app/",
+            url: `${SITE_URL}/`,
             potentialAction: {
               "@type": "SearchAction",
-              target: "https://globalenterprises.lovable.app/products?search={query}",
+              target: `${SITE_URL}/products?search={query}`,
               "query-input": "required name=query",
             },
           },

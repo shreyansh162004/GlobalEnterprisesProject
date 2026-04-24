@@ -15,8 +15,11 @@ import {
   Banner,
   getAdminCreds,
   saveAdminCreds,
+  getContactInfo,
+  saveContactInfo,
+  ContactInfo,
 } from "@/data/products";
-import { Pencil, Trash2, Plus, LogIn, LogOut, Instagram, Youtube, Link2, Upload, X, Globe, Tag, MessageCircle, ShieldCheck, Megaphone } from "lucide-react";
+import { Pencil, Trash2, Plus, LogIn, LogOut, Instagram, Youtube, Link2, Upload, X, Globe, Tag, MessageCircle, ShieldCheck, Megaphone, Phone } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import ImageCropper from "@/components/ImageCropper";
 
@@ -26,6 +29,7 @@ type Tab =
   | "categories"
   | "brands"
   | "whatsapp"
+  | "contact"
   | "reels"
   | "videos"
   | "channels"

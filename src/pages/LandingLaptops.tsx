@@ -153,7 +153,15 @@ const LandingLaptops = () => {
   const all = getProducts();
 
   const matches = useMemo(
-    () => (config ? all.filter(config.filter) : []),
+    () => {
+      if (!config) return [];
+      // Sort newest first so the "Deals" view (and other landings)
+      // automatically surface recently added laptops.
+      return all
+        .filter(config.filter)
+        .slice()
+        .sort((a, b) => Number(b.id) - Number(a.id));
+    },
     [all, config]
   );
 

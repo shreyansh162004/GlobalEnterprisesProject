@@ -17,9 +17,50 @@ export const categories = ["Laptop", "Desktop", "Monitor", "Accessories", "Print
 const BRANDS_KEY = "ge-brands";
 const CATEGORIES_KEY = "ge-categories";
 const WHATSAPP_KEY = "ge-whatsapp";
-const DEFAULT_WHATSAPP = "919876543210";
+const DEFAULT_WHATSAPP = "917879707696";
 const BANNER_KEY = "ge-banner";
 const ADMIN_CREDS_KEY = "ge-admin-creds";
+const CONTACT_INFO_KEY = "ge-contact-info";
+
+export interface ContactInfo {
+  phone: string;        // display format e.g. "+91 78797 07696"
+  email: string;
+  address: string;
+  hours: string;
+}
+
+const DEFAULT_CONTACT: ContactInfo = {
+  phone: "+91 78797 07696",
+  email: "info@globalenterprises.in",
+  address: "Rasal Chowk, Jain Tower, Hotel Samdariya, Jabalpur, MP 482001",
+  hours: "Mon–Sat: 10AM – 8PM",
+};
+
+export function getContactInfo(): ContactInfo {
+  const stored = localStorage.getItem(CONTACT_INFO_KEY);
+  if (!stored) return DEFAULT_CONTACT;
+  try {
+    return { ...DEFAULT_CONTACT, ...JSON.parse(stored) };
+  } catch {
+    return DEFAULT_CONTACT;
+  }
+}
+
+export function saveContactInfo(info: ContactInfo) {
+  localStorage.setItem(CONTACT_INFO_KEY, JSON.stringify(info));
+  window.dispatchEvent(new Event("ge-contact-changed"));
+}
+
+// Convert a display phone like "+91 78797 07696" to a tel: href value.
+export function phoneToTelHref(phone: string): string {
+  const digits = phone.replace(/\D/g, "");
+  return `+${digits}`;
+}
+
+// Last 10 digits — useful for tel: links that prefix +91.
+export function phoneLast10(phone: string): string {
+  return phone.replace(/\D/g, "").slice(-10);
+}
 
 export interface Banner {
   image: string; // data URL

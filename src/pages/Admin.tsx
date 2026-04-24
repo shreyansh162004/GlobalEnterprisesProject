@@ -111,6 +111,7 @@ const Admin = () => {
     { id: "categories", label: "Categories", icon: Tag },
     { id: "brands", label: "Brands", icon: Tag },
     { id: "whatsapp", label: "WhatsApp", icon: MessageCircle },
+    { id: "contact", label: "Contact Info", icon: Phone },
     { id: "reels", label: "Instagram Reels", icon: Instagram },
     { id: "videos", label: "YouTube Videos", icon: Youtube },
     { id: "channels", label: "Channel Links", icon: Globe },
@@ -176,6 +177,7 @@ const Admin = () => {
         {activeTab === "categories" && <ListManagerTab kind="categories" />}
         {activeTab === "brands" && <ListManagerTab kind="brands" />}
         {activeTab === "whatsapp" && <WhatsAppTab />}
+        {activeTab === "contact" && <ContactInfoTab />}
         {activeTab === "banner" && <BannerTab />}
         {activeTab === "credentials" && <CredentialsTab />}
       </div>

@@ -126,7 +126,7 @@ export const localBusinessSchema = {
   description:
     "Premium second hand and refurbished laptop shop in Jabalpur. Buy used HP, Dell, Lenovo laptops with warranty at best prices.",
   url: SITE_URL,
-  telephone: "+91-98765-43210",
+  telephone: "+91-78797-07696",
   image: DEFAULT_IMAGE,
   logo: DEFAULT_IMAGE,
   priceRange: "₹₹",

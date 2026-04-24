@@ -1,12 +1,26 @@
+import { useEffect, useState } from "react";
 import { Phone, Mail, MapPin, Clock } from "lucide-react";
 import ScrollReveal from "@/components/ScrollReveal";
 import SEO, { localBusinessSchema } from "@/components/SEO";
+import { getContactInfo, phoneToTelHref, ContactInfo } from "@/data/products";
 
-const Contact = () => (
+const Contact = () => {
+  const [contact, setContact] = useState<ContactInfo>(getContactInfo);
+  useEffect(() => {
+    const sync = () => setContact(getContactInfo());
+    window.addEventListener("ge-contact-changed", sync);
+    window.addEventListener("storage", sync);
+    return () => {
+      window.removeEventListener("ge-contact-changed", sync);
+      window.removeEventListener("storage", sync);
+    };
+  }, []);
+
+  return (
   <div className="min-h-screen pt-24 pb-24 md:pb-16">
     <SEO
       title="Contact Global Enterprises – Laptop Shop Jabalpur"
-      description="Visit Global Enterprises at Rasal Chowk, Jain Tower, near Hotel Samdariya, Jabalpur. Call +91 98765 43210 for second hand laptops with warranty."
+      description={`Visit Global Enterprises at ${contact.address}. Call ${contact.phone} for second hand laptops with warranty.`}
       path="/contact"
       jsonLd={localBusinessSchema}
     />
@@ -23,22 +37,22 @@ const Contact = () => (
           <div className="glass-card p-8 md:p-10 space-y-6">
             <h2 className="text-xl font-heading font-bold">Contact Information</h2>
             <div className="space-y-5">
-              <a href="tel:+919876543210" className="flex items-center gap-4 text-muted-foreground hover:text-primary transition-colors">
+              <a href={`tel:${phoneToTelHref(contact.phone)}`} className="flex items-center gap-4 text-muted-foreground hover:text-primary transition-colors">
                 <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
                   <Phone className="w-5 h-5 text-primary" />
                 </div>
                 <div>
                   <p className="text-sm font-medium text-foreground">Phone</p>
-                  <p className="text-sm">+91 98765 43210</p>
+                  <p className="text-sm">{contact.phone}</p>
                 </div>
               </a>
-              <a href="mailto:info@globalenterprises.in" className="flex items-center gap-4 text-muted-foreground hover:text-primary transition-colors">
+              <a href={`mailto:${contact.email}`} className="flex items-center gap-4 text-muted-foreground hover:text-primary transition-colors">
                 <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
                   <Mail className="w-5 h-5 text-primary" />
                 </div>
                 <div>
                   <p className="text-sm font-medium text-foreground">Email</p>
-                  <p className="text-sm">info@globalenterprises.in</p>
+                  <p className="text-sm">{contact.email}</p>
                 </div>
               </a>
               <div className="flex items-center gap-4 text-muted-foreground">
@@ -47,7 +61,7 @@ const Contact = () => (
                 </div>
                 <div>
                   <p className="text-sm font-medium text-foreground">Address</p>
-                  <p className="text-sm">Rasal Chowk, Jain Tower, Hotel Samdariya, Jabalpur, MP 482001</p>
+                  <p className="text-sm">{contact.address}</p>
                 </div>
               </div>
               <div className="flex items-center gap-4 text-muted-foreground">
@@ -56,7 +70,7 @@ const Contact = () => (
                 </div>
                 <div>
                   <p className="text-sm font-medium text-foreground">Working Hours</p>
-                  <p className="text-sm">Mon–Sat: 10AM – 8PM</p>
+                  <p className="text-sm">{contact.hours}</p>
                 </div>
               </div>
             </div>
@@ -79,6 +93,7 @@ const Contact = () => (
       </div>
     </div>
   </div>
-);
+  );
+};
 
 export default Contact;

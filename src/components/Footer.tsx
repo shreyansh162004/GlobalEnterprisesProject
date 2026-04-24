@@ -1,8 +1,22 @@
+import { useEffect, useState } from "react";
 import { MapPin, Phone, Mail, Instagram, Facebook } from "lucide-react";
 import { Link } from "react-router-dom";
 import logo from "@/assets/logo.jpg";
+import { getContactInfo, phoneToTelHref, ContactInfo } from "@/data/products";
 
-const Footer = () => (
+const Footer = () => {
+  const [contact, setContact] = useState<ContactInfo>(getContactInfo);
+  useEffect(() => {
+    const sync = () => setContact(getContactInfo());
+    window.addEventListener("ge-contact-changed", sync);
+    window.addEventListener("storage", sync);
+    return () => {
+      window.removeEventListener("ge-contact-changed", sync);
+      window.removeEventListener("storage", sync);
+    };
+  }, []);
+
+  return (
   <footer className="border-t border-border bg-card/50 pb-20 md:pb-0">
     <div className="container mx-auto px-4 py-16 grid grid-cols-1 md:grid-cols-4 gap-10">
       <div>
@@ -36,9 +50,9 @@ const Footer = () => (
       <div>
         <h4 className="font-heading font-bold mb-4 text-lg">Contact</h4>
         <div className="flex flex-col gap-3 text-sm text-muted-foreground">
-          <div className="flex items-center gap-2"><MapPin className="w-4 h-4 text-primary shrink-0" /> Jabalpur, MP</div>
-          <a href="tel:+919876543210" className="flex items-center gap-2 hover:text-primary transition-colors"><Phone className="w-4 h-4 text-primary shrink-0" /> +91 98765 43210</a>
-          <a href="mailto:info@globalenterprises.in" className="flex items-center gap-2 hover:text-primary transition-colors"><Mail className="w-4 h-4 text-primary shrink-0" /> info@globalenterprises.in</a>
+          <div className="flex items-center gap-2"><MapPin className="w-4 h-4 text-primary shrink-0" /> {contact.address}</div>
+          <a href={`tel:${phoneToTelHref(contact.phone)}`} className="flex items-center gap-2 hover:text-primary transition-colors"><Phone className="w-4 h-4 text-primary shrink-0" /> {contact.phone}</a>
+          <a href={`mailto:${contact.email}`} className="flex items-center gap-2 hover:text-primary transition-colors"><Mail className="w-4 h-4 text-primary shrink-0" /> {contact.email}</a>
           <div className="flex gap-3 mt-3">
             <a href="#" className="p-2.5 rounded-xl bg-secondary hover:bg-primary/20 transition-colors"><Instagram className="w-4 h-4" /></a>
             <a href="#" className="p-2.5 rounded-xl bg-secondary hover:bg-primary/20 transition-colors"><Facebook className="w-4 h-4" /></a>
@@ -50,6 +64,7 @@ const Footer = () => (
       © 2024 Global Enterprises. All rights reserved.
     </div>
   </footer>
-);
+  );
+};
 
 export default Footer;

@@ -1,8 +1,15 @@
 import { Phone, Mail, MapPin, Clock } from "lucide-react";
 import ScrollReveal from "@/components/ScrollReveal";
+import SEO, { localBusinessSchema } from "@/components/SEO";
 
 const Contact = () => (
   <div className="min-h-screen pt-24 pb-24 md:pb-16">
+    <SEO
+      title="Contact Global Enterprises – Laptop Shop Jabalpur"
+      description="Visit Global Enterprises at Rasal Chowk, Jain Tower, near Hotel Samdariya, Jabalpur. Call +91 98765 43210 for second hand laptops with warranty."
+      path="/contact"
+      jsonLd={localBusinessSchema}
+    />
     <div className="container mx-auto px-4">
       <ScrollReveal>
         <div className="text-center mb-14">

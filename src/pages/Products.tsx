@@ -6,6 +6,7 @@ import ProductCard from "@/components/ProductCard";
 import ScrollReveal from "@/components/ScrollReveal";
 import { SlidersHorizontal, X, Search } from "lucide-react";
 import Fuse from "fuse.js";
+import SEO from "@/components/SEO";
 
 const Products = () => {
   const [searchParams] = useSearchParams();

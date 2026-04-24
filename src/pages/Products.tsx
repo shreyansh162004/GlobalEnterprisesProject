@@ -101,6 +101,18 @@ const Products = () => {
 
   return (
     <div className="min-h-screen pt-24 pb-24 md:pb-16">
+      <SEO
+        title="Used & Refurbished Laptops in Jabalpur | Global Enterprises"
+        description="Browse second hand HP, Dell, Lenovo laptops at Global Enterprises Jabalpur. Budget laptops under ₹20,000–₹30,000 with warranty. Best prices guaranteed."
+        path="/products"
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "CollectionPage",
+          name: "Refurbished Laptops Collection",
+          description: "Second hand laptops, refurbished HP, Dell, Lenovo and gaming laptops in Jabalpur.",
+          url: "https://globalenterprises.lovable.app/products",
+        }}
+      />
       <div className="container mx-auto px-4">
         <ScrollReveal>
           <div className="mb-8">

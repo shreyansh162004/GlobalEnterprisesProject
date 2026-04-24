@@ -21,6 +21,12 @@ const About = () => {
 
   return (
     <div className="min-h-screen pt-24 pb-24 md:pb-16">
+      <SEO
+        title="About Global Enterprises – Trusted Laptop Shop Jabalpur"
+        description="14+ years serving Jabalpur with second hand & refurbished laptops. Trusted dealer at Rasal Chowk, Jain Tower for HP, Dell, Lenovo with warranty."
+        path="/about"
+        jsonLd={localBusinessSchema}
+      />
       <div className="container mx-auto px-4">
         <ScrollReveal>
           <div className="max-w-3xl mx-auto text-center mb-20">

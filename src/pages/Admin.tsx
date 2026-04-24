@@ -210,17 +210,90 @@ function WhatsAppTab() {
       </p>
       <div>
         <label className="text-xs font-medium text-muted-foreground mb-1 block">
-          Number with country code (e.g. 919876543210)
+          Number with country code (e.g. 917879707696)
         </label>
         <input
           type="tel"
-          placeholder="919876543210"
+          placeholder="917879707696"
           value={number}
           onChange={(e) => setNumber(e.target.value)}
           className="w-full px-4 py-3 rounded-xl bg-secondary border border-border text-sm focus:outline-none focus:border-primary transition-colors"
         />
       </div>
       <button onClick={save} className="btn-premium">Save Number</button>
+    </div>
+  );
+}
+
+function ContactInfoTab() {
+  const [info, setInfo] = useState<ContactInfo>(() => getContactInfo());
+
+  const update = (key: keyof ContactInfo, value: string) =>
+    setInfo((prev) => ({ ...prev, [key]: value }));
+
+  const save = () => {
+    if (!info.phone.trim() || !info.email.trim() || !info.address.trim()) {
+      toast({ title: "Phone, email and address are required", variant: "destructive" });
+      return;
+    }
+    saveContactInfo({
+      phone: info.phone.trim(),
+      email: info.email.trim(),
+      address: info.address.trim(),
+      hours: info.hours.trim(),
+    });
+    toast({ title: "Contact details updated!" });
+  };
+
+  return (
+    <div className="space-y-6 max-w-2xl">
+      <h2 className="text-lg font-heading font-bold">Public Contact Information</h2>
+      <p className="text-sm text-muted-foreground">
+        Shown on the Contact page and in the site footer. The phone here is for display & call links — to update the WhatsApp redirection number, use the WhatsApp tab.
+      </p>
+      <div className="grid grid-cols-1 gap-4">
+        <div>
+          <label className="text-xs font-medium text-muted-foreground mb-1 block">Phone (display)</label>
+          <input
+            type="text"
+            placeholder="+91 78797 07696"
+            value={info.phone}
+            onChange={(e) => update("phone", e.target.value)}
+            className="w-full px-4 py-3 rounded-xl bg-secondary border border-border text-sm focus:outline-none focus:border-primary transition-colors"
+          />
+        </div>
+        <div>
+          <label className="text-xs font-medium text-muted-foreground mb-1 block">Email</label>
+          <input
+            type="email"
+            placeholder="info@globalenterprises.in"
+            value={info.email}
+            onChange={(e) => update("email", e.target.value)}
+            className="w-full px-4 py-3 rounded-xl bg-secondary border border-border text-sm focus:outline-none focus:border-primary transition-colors"
+          />
+        </div>
+        <div>
+          <label className="text-xs font-medium text-muted-foreground mb-1 block">Address</label>
+          <textarea
+            placeholder="Rasal Chowk, Jain Tower, Hotel Samdariya, Jabalpur, MP 482001"
+            value={info.address}
+            onChange={(e) => update("address", e.target.value)}
+            rows={2}
+            className="w-full px-4 py-3 rounded-xl bg-secondary border border-border text-sm focus:outline-none focus:border-primary resize-none transition-colors"
+          />
+        </div>
+        <div>
+          <label className="text-xs font-medium text-muted-foreground mb-1 block">Working Hours</label>
+          <input
+            type="text"
+            placeholder="Mon–Sat: 10AM – 8PM"
+            value={info.hours}
+            onChange={(e) => update("hours", e.target.value)}
+            className="w-full px-4 py-3 rounded-xl bg-secondary border border-border text-sm focus:outline-none focus:border-primary transition-colors"
+          />
+        </div>
+      </div>
+      <button onClick={save} className="btn-premium">Save Contact Info</button>
     </div>
   );
 }

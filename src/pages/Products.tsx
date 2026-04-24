@@ -6,7 +6,7 @@ import ProductCard from "@/components/ProductCard";
 import ScrollReveal from "@/components/ScrollReveal";
 import { SlidersHorizontal, X, Search } from "lucide-react";
 import Fuse from "fuse.js";
-import SEO from "@/components/SEO";
+import SEO, { SITE_URL } from "@/components/SEO";
 
 const Products = () => {
   const [searchParams] = useSearchParams();
@@ -99,18 +99,55 @@ const Products = () => {
 
   const hasFilters = selectedBrand || selectedCategory || selectedPrice > 0 || searchQuery;
 
+  // Dynamic SEO based on active filters so URLs like /products?brand=HP rank for
+  // queries like "used hp laptop jabalpur" or "laptop under 20000 jabalpur".
+  const seoMeta = useMemo(() => {
+    const parts: string[] = [];
+    const kw: string[] = [];
+    if (selectedBrand) {
+      parts.push(`Used ${selectedBrand} ${selectedCategory || "Laptops"}`);
+      kw.push(`used ${selectedBrand.toLowerCase()} laptop jabalpur`, `second hand ${selectedBrand.toLowerCase()} jabalpur`);
+    } else if (selectedCategory) {
+      parts.push(`Second Hand ${selectedCategory}s`);
+    }
+    const range = priceRanges[selectedPrice];
+    if (selectedPrice > 0 && range) {
+      const maxK = Math.round(range.max / 1000);
+      if (range.max < 999999) {
+        parts.push(`under ₹${maxK},000`);
+        kw.push(`laptop under ${maxK}000 jabalpur`);
+      }
+    }
+    if (searchQuery.trim()) parts.push(`"${searchQuery.trim()}"`);
+    const heading = parts.length ? parts.join(" ") : "Used & Refurbished Laptops";
+    const title = `${heading} in Jabalpur | Global Enterprises`;
+    const description = parts.length
+      ? `Shop ${heading.toLowerCase()} in Jabalpur with warranty at Global Enterprises, Rasal Chowk, Jain Tower. Best prices on second hand laptops.`
+      : "Browse second hand HP, Dell, Lenovo laptops at Global Enterprises Jabalpur. Budget laptops under ₹20,000–₹30,000 with warranty. Best prices guaranteed.";
+    const qs = new URLSearchParams();
+    if (selectedBrand) qs.set("brand", selectedBrand);
+    if (selectedCategory) qs.set("category", selectedCategory);
+    if (selectedPrice > 0 && range) {
+      qs.set("minPrice", String(range.min));
+      qs.set("maxPrice", String(range.max));
+    }
+    const path = `/products${qs.toString() ? `?${qs.toString()}` : ""}`;
+    return { title, description, path, keywords: kw };
+  }, [selectedBrand, selectedCategory, selectedPrice, searchQuery, priceRanges]);
+
   return (
     <div className="min-h-screen pt-24 pb-24 md:pb-16">
       <SEO
-        title="Used & Refurbished Laptops in Jabalpur | Global Enterprises"
-        description="Browse second hand HP, Dell, Lenovo laptops at Global Enterprises Jabalpur. Budget laptops under ₹20,000–₹30,000 with warranty. Best prices guaranteed."
-        path="/products"
+        title={seoMeta.title}
+        description={seoMeta.description}
+        path={seoMeta.path}
+        keywords={seoMeta.keywords}
         jsonLd={{
           "@context": "https://schema.org",
           "@type": "CollectionPage",
-          name: "Refurbished Laptops Collection",
+          name: seoMeta.title,
           description: "Second hand laptops, refurbished HP, Dell, Lenovo and gaming laptops in Jabalpur.",
-          url: "https://globalenterprises.lovable.app/products",
+          url: `${SITE_URL}${seoMeta.path}`,
         }}
       />
       <div className="container mx-auto px-4">

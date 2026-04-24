@@ -4,7 +4,7 @@ import logo from "@/assets/logo.jpg";
 
 const Footer = () => (
   <footer className="border-t border-border bg-card/50 pb-20 md:pb-0">
-    <div className="container mx-auto px-4 py-16 grid grid-cols-1 md:grid-cols-3 gap-10">
+    <div className="container mx-auto px-4 py-16 grid grid-cols-1 md:grid-cols-4 gap-10">
       <div>
         <div className="flex items-center gap-3 mb-4">
           <img src={logo} alt="Global Enterprises" className="w-12 h-12 rounded-full object-cover border border-primary/20 shadow-md" />
@@ -19,6 +19,18 @@ const Footer = () => (
           <Link to="/products" className="hover:text-primary transition-colors">Products</Link>
           <Link to="/about" className="hover:text-primary transition-colors">About Us</Link>
           <Link to="/contact" className="hover:text-primary transition-colors">Contact</Link>
+        </div>
+      </div>
+      <div>
+        <h4 className="font-heading font-bold mb-4 text-lg">Popular in Jabalpur</h4>
+        <div className="flex flex-col gap-3 text-sm text-muted-foreground">
+          <Link to="/laptops/buy-second-hand-jabalpur" className="hover:text-primary transition-colors">Buy Second Hand Laptop</Link>
+          <Link to="/laptops/under-20000-jabalpur" className="hover:text-primary transition-colors">Laptops Under ₹20,000</Link>
+          <Link to="/laptops/under-30000-jabalpur" className="hover:text-primary transition-colors">Laptops Under ₹30,000</Link>
+          <Link to="/laptops/used-hp-jabalpur" className="hover:text-primary transition-colors">Used HP Laptops</Link>
+          <Link to="/laptops/used-dell-jabalpur" className="hover:text-primary transition-colors">Used Dell Laptops</Link>
+          <Link to="/laptops/used-lenovo-jabalpur" className="hover:text-primary transition-colors">Used Lenovo Laptops</Link>
+          <Link to="/laptops/gaming-jabalpur" className="hover:text-primary transition-colors">Gaming Laptops</Link>
         </div>
       </div>
       <div>

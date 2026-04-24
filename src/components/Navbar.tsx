@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { ShoppingCart, Menu, X, Home, Package, Info, Phone } from "lucide-react";
+import { ShoppingCart, Menu, X, Home, Package, Info, Phone, Tag } from "lucide-react";
 import { getCart } from "@/data/cart";
 import logo from "@/assets/logo.jpg";
 
@@ -12,6 +12,7 @@ interface NavbarProps {
 const links = [
   { to: "/", label: "Home", icon: Home },
   { to: "/products", label: "Products", icon: Package },
+  { to: "/laptops/buy-second-hand-jabalpur", label: "Deals", icon: Tag },
   { to: "/about", label: "About", icon: Info },
   { to: "/contact", label: "Contact", icon: Phone },
 ];

@@ -18,6 +18,7 @@ const Chatbot = () => {
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState<Step>("lang");
   const [lang, setLang] = useState<"en" | "hi">("en");
+  const [products, setProducts] = useState<{ price: number }[]>([]);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [typing, setTyping] = useState(false);
   const [selectedBrand, setSelectedBrand] = useState<string | null>(null);
@@ -25,14 +26,28 @@ const Chatbot = () => {
   const navigate = useNavigate();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  useEffect(() => {
+    const loadProducts = async () => {
+      try {
+        const data = await getProducts();
+        setProducts(Array.isArray(data) ? data : []);
+      } catch (err) {
+        console.error("Error loading chatbot products:", err);
+        setProducts([]);
+      }
+    };
+
+    loadProducts();
+  }, []);
+
   const t = (en: string, hi: string) => (lang === "hi" ? hi : en);
 
   // Generate dynamic price ranges from product data
   const dynamicBudgets = useMemo(() => {
-    const products = getProducts();
-    if (products.length === 0) return [{ label: "Any Price", min: 0, max: 999999 }];
+    const safeProducts = Array.isArray(products) ? products : [];
+    if (safeProducts.length === 0) return [{ label: "Any Price", min: 0, max: 999999 }];
 
-    const prices = products.map((p) => p.price).sort((a, b) => a - b);
+    const prices = safeProducts.map((p) => p.price).sort((a, b) => a - b);
     const minPrice = prices[0];
     const maxPrice = prices[prices.length - 1];
 
@@ -44,7 +59,7 @@ const Chatbot = () => {
     for (let i = 0; i < 4; i++) {
       const rangeMin = current;
       const rangeMax = i === 3 ? 999999 : current + step;
-      const count = products.filter((p) => p.price >= rangeMin && p.price < rangeMax).length;
+      const count = safeProducts.filter((p) => p.price >= rangeMin && p.price < rangeMax).length;
 
       if (count > 0 || i === 3) {
         const formatPrice = (v: number) => {
@@ -58,7 +73,7 @@ const Chatbot = () => {
       current += step;
     }
     return ranges.length > 0 ? ranges : [{ label: "Any Price", min: 0, max: 999999 }];
-  }, []);
+  }, [products]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });

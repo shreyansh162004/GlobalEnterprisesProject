@@ -10,15 +10,37 @@ import SEO, { SITE_URL } from "@/components/SEO";
 
 const Products = () => {
   const [searchParams] = useSearchParams();
+  const [products, setProducts] = useState<Product[]>([]);
+  const [brands, setBrands] = useState<string[]>([]);
+  const [categories, setCategories] = useState<string[]>([]);
   const [selectedBrand, setSelectedBrand] = useState<string>(searchParams.get("brand") || "");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [selectedPrice, setSelectedPrice] = useState(0);
   const [showFilters, setShowFilters] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
-  const products = getProducts();
-  const brands = useMemo(() => getBrands(), []);
-  const categories = useMemo(() => getCategories(), []);
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const [productsData, brandsData, categoriesData] = await Promise.all([
+          getProducts(),
+          getBrands(),
+          getCategories(),
+        ]);
+
+        setProducts(Array.isArray(productsData) ? productsData : []);
+        setBrands(Array.isArray(brandsData) ? brandsData : []);
+        setCategories(Array.isArray(categoriesData) ? categoriesData : []);
+      } catch (err) {
+        console.error("Error loading products page data:", err);
+        setProducts([]);
+        setBrands([]);
+        setCategories([]);
+      }
+    };
+
+    loadData();
+  }, []);
 
   // Dynamic price ranges based on actual product prices
   const priceRanges = useMemo(() => {

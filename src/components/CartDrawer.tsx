@@ -11,6 +11,8 @@ interface CartDrawerProps {
 
 const CartDrawer = ({ open, onClose }: CartDrawerProps) => {
   const [cart, setCart] = useState<CartItem[]>([]);
+  const [whatsappLink, setWhatsappLink] = useState<string>("");
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const update = () => setCart(getCart());
@@ -18,6 +20,23 @@ const CartDrawer = ({ open, onClose }: CartDrawerProps) => {
     window.addEventListener("cart-updated", update);
     return () => window.removeEventListener("cart-updated", update);
   }, [open]);
+
+  useEffect(() => {
+    const generateWhatsAppLink = async () => {
+      if (cart.length > 0) {
+        setLoading(true);
+        try {
+          const link = await getWhatsAppCheckoutLink(cart);
+          setWhatsappLink(link);
+        } catch (err) {
+          console.error("Error generating WhatsApp link:", err);
+        } finally {
+          setLoading(false);
+        }
+      }
+    };
+    generateWhatsAppLink();
+  }, [cart]);
 
   const total = getCartTotal(cart);
 
@@ -138,13 +157,19 @@ const CartDrawer = ({ open, onClose }: CartDrawerProps) => {
                   <span className="text-primary">₹{total.toLocaleString("en-IN")}</span>
                 </div>
                 <a
-                  href={getWhatsAppCheckoutLink(cart)}
+                  href={whatsappLink}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="btn-premium flex items-center justify-center gap-2 w-full bg-accent"
+                  className="btn-premium flex items-center justify-center gap-2 w-full bg-accent disabled:opacity-50"
+                  onClick={(e) => {
+                    if (!whatsappLink) {
+                      e.preventDefault();
+                      toast({ title: "Generating WhatsApp link...", variant: "destructive" });
+                    }
+                  }}
                 >
                   <MessageCircle className="w-5 h-5" />
-                  Checkout via WhatsApp
+                  {loading ? "Preparing..." : "Checkout via WhatsApp"}
                 </a>
               </div>
             )}

@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { ArrowRight, Shield, Truck, HeadphonesIcon, Award, Star, Instagram, Youtube, Quote, Share2 } from "lucide-react";
 import { Link } from "react-router-dom";
-import { getProducts, getWhatsAppNumber } from "@/data/products";
+import { getProducts, getWhatsAppNumber, Product, fetchInstagramReels, fetchYoutubeVideos, fetchChannelLinks } from "@/data/products";
 import ProductCard from "@/components/ProductCard";
 import ScrollReveal from "@/components/ScrollReveal";
 import PromoBanner from "@/components/PromoBanner";
@@ -31,21 +31,38 @@ const defaultInstagramReels = [
 ];
 
 const Index = () => {
-  const products = getProducts();
-  const featured = products.filter((p) => p.featured).slice(0, 4);
-
+  const [products, setProducts] = useState<Product[]>([]);
   const [reelLinks, setReelLinks] = useState<string[]>([]);
   const [videoLinks, setVideoLinks] = useState<string[]>([]);
   const [channelLinks, setChannelLinks] = useState({ instagram: "", youtube: "" });
+  const [whatsappNumber, setWhatsappNumber] = useState("917879707696");
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const storedReels = localStorage.getItem("ge-instagram-reels");
-    if (storedReels) setReelLinks(JSON.parse(storedReels));
-    const storedVideos = localStorage.getItem("ge-youtube-videos");
-    if (storedVideos) setVideoLinks(JSON.parse(storedVideos));
-    const storedChannels = localStorage.getItem("ge-channel-links");
-    if (storedChannels) setChannelLinks(JSON.parse(storedChannels));
+    const loadData = async () => {
+      try {
+        const [prods, reels, videos, channels, whatsapp] = await Promise.all([
+          getProducts(),
+          fetchInstagramReels(),
+          fetchYoutubeVideos(),
+          fetchChannelLinks(),
+          getWhatsAppNumber(),
+        ]);
+        setProducts(prods);
+        setReelLinks(reels);
+        setVideoLinks(videos);
+        setChannelLinks(channels);
+        setWhatsappNumber(whatsapp);
+      } catch (err) {
+        console.error("Error loading data:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadData();
   }, []);
+
+  const featured = products.filter((p) => p.featured).slice(0, 4);
 
   const getYouTubeEmbedUrl = (url: string) => {
     const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([\w-]+)/);
@@ -137,7 +154,7 @@ const Index = () => {
                   Shop Now <ArrowRight className="w-4 h-4" />
                 </Link>
                 <a
-                  href={`https://wa.me/${getWhatsAppNumber()}`}
+                  href={`https://wa.me/${whatsappNumber}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="btn-outline-premium inline-flex items-center gap-2"
@@ -422,7 +439,7 @@ const Index = () => {
                 Chat with our experts on WhatsApp and get personalized recommendations instantly.
               </p>
               <a
-                href={`https://wa.me/${getWhatsAppNumber()}`}
+                href={`https://wa.me/${whatsappNumber}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="btn-premium inline-flex items-center gap-2"

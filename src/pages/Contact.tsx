@@ -5,9 +5,23 @@ import SEO, { localBusinessSchema } from "@/components/SEO";
 import { getContactInfo, phoneToTelHref, ContactInfo } from "@/data/products";
 
 const Contact = () => {
-  const [contact, setContact] = useState<ContactInfo>(getContactInfo);
+  const [contact, setContact] = useState<ContactInfo>({
+    phone: "+91 78797 07696",
+    email: "info@globalenterprises.in",
+    address: "Rasal Chowk, Jain Tower, Hotel Samdariya, Jabalpur, MP 482001",
+    hours: "Mon–Sat: 10AM – 8PM",
+  });
   useEffect(() => {
-    const sync = () => setContact(getContactInfo());
+    const sync = async () => {
+      try {
+        const info = await getContactInfo();
+        setContact(info);
+      } catch (err) {
+        console.error("Error loading contact info:", err);
+      }
+    };
+
+    sync();
     window.addEventListener("ge-contact-changed", sync);
     window.addEventListener("storage", sync);
     return () => {

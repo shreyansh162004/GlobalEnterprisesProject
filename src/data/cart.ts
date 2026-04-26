@@ -50,11 +50,12 @@ export function getCartTotal(cart: CartItem[]): number {
   return cart.reduce((total, item) => total + item.product.price * item.quantity, 0);
 }
 
-export function getWhatsAppCheckoutLink(cart: CartItem[]): string {
+export async function getWhatsAppCheckoutLink(cart: CartItem[]): Promise<string> {
   const lines = cart.map(
     (item) => `• ${item.product.name} x${item.quantity} - ₹${(item.product.price * item.quantity).toLocaleString("en-IN")}`
   );
   const total = getCartTotal(cart);
   const message = `Hi! I'd like to order:\n\n${lines.join("\n")}\n\nTotal: ₹${total.toLocaleString("en-IN")}\n\nPlease confirm availability.`;
-  return `https://wa.me/${getWhatsAppNumber()}?text=${encodeURIComponent(message)}`;
+  const whatsappNumber = await getWhatsAppNumber();
+  return `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
 }

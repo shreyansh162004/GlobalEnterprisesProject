@@ -6,7 +6,10 @@ const PromoBanner = () => {
   const [banner, setBanner] = useState<Banner | null>(null);
 
   useEffect(() => {
-    const load = () => setBanner(getBanner());
+    const load = async () => {
+      const b = await getBanner();
+      setBanner(b);
+    };
     load();
     window.addEventListener("storage", load);
     window.addEventListener("ge-banner-changed", load);
@@ -53,7 +56,8 @@ const BannerImage = ({ banner }: { banner: Banner }) => (
   <img
     src={banner.image}
     alt={banner.alt || "Promotional banner"}
-    className="w-auto h-auto max-w-full max-h-[85vh] object-contain transition-transform duration-700 group-hover:scale-[1.02]"
+    className="w-full h-auto max-w-full max-h-[320px] md:max-h-[420px] object-contain object-center transition-transform duration-700 group-hover:scale-[1.02]"
+    style={{ aspectRatio: 'auto' }}
     loading="eager"
   />
 );

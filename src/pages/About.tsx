@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { Award, Users, Clock, MapPin, Instagram, Youtube } from "lucide-react";
 import ScrollReveal from "@/components/ScrollReveal";
 import SEO, { localBusinessSchema } from "@/components/SEO";
+import { fetchChannelLinks } from "@/data/products";
 
 const stats = [
   { icon: Clock, value: "14+", label: "Years Experience" },
@@ -15,8 +16,11 @@ const About = () => {
   const [channelLinks, setChannelLinks] = useState({ instagram: "", youtube: "" });
 
   useEffect(() => {
-    const stored = localStorage.getItem("ge-channel-links");
-    if (stored) setChannelLinks(JSON.parse(stored));
+    const load = async () => {
+      const links = await fetchChannelLinks();
+      setChannelLinks(links);
+    };
+    load();
   }, []);
 
   return (

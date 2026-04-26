@@ -11,10 +11,38 @@ import SEO, { SITE_URL } from "@/components/SEO";
 
 const ProductDetail = () => {
   const { id } = useParams();
-  const products = getProducts();
-  const product = products.find((p) => p.id === id);
+  const [products, setProducts] = useState<any[]>([]);
+  const [product, setProduct] = useState<any>(null);
   const [currentImage, setCurrentImage] = useState(0);
+  const [whatsappLink, setWhatsappLink] = useState("");
+  const [loading, setLoading] = useState(true);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const [prods, whatsappNum] = await Promise.all([
+          getProducts(),
+          getWhatsAppNumber(),
+        ]);
+        setProducts(prods);
+        const foundProduct = prods.find((p) => p.id === id);
+        setProduct(foundProduct);
+        if (foundProduct) {
+          setWhatsappLink(
+            `https://wa.me/${whatsappNum}?text=${encodeURIComponent(
+              `Hi! I'm interested in ${foundProduct.name} (₹${foundProduct.price.toLocaleString("en-IN")}). Is it available?`
+            )}`
+          );
+        }
+      } catch (err) {
+        console.error("Error loading product:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadData();
+  }, [id]);
 
   const images = product?.images || [];
 
@@ -68,10 +96,6 @@ const ProductDetail = () => {
     .filter((p) => p.id !== product.id && p.price > product.price)
     .sort((a, b) => a.price - b.price)
     .slice(0, 4);
-
-  const whatsappLink = `https://wa.me/${getWhatsAppNumber()}?text=${encodeURIComponent(
-    `Hi! I'm interested in ${product.name} (₹${product.price.toLocaleString("en-IN")}). Is it available?`
-  )}`;
 
   return (
     <div className="min-h-screen pt-24 pb-24 md:pb-16">

@@ -1,25 +1,43 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+/**
+ * Admin Dashboard - Supabase Integration
+ * All data operations are now async and connected to Supabase database
+ * Admin credentials remain unchanged: username: "admin", password: "global2024"
+ */
+
+import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import {
   getProducts,
-  saveProducts,
+  saveProduct,
+  updateProduct,
+  deleteProduct,
   Product,
   getBrands,
   getCategories,
-  saveCategories,
-  saveBrands,
+  addCategory,
+  deleteCategory,
+  addBrand,
+  deleteBrand,
   getWhatsAppNumber,
   saveWhatsAppNumber,
   getBanner,
   saveBanner,
   Banner,
   getAdminCreds,
-  saveAdminCreds,
   getContactInfo,
   saveContactInfo,
   ContactInfo,
+  fetchInstagramReels,
+  addInstagramReel,
+  deleteInstagramReel,
+  fetchYoutubeVideos,
+  addYoutubeVideo,
+  deleteYoutubeVideo,
+  uploadImageToStorage,
+  fetchChannelLinks,
+  saveChannelLinks,
 } from "@/data/products";
-import { Pencil, Trash2, Plus, LogIn, LogOut, Instagram, Youtube, Link2, Upload, X, Globe, Tag, MessageCircle, ShieldCheck, Megaphone, Phone } from "lucide-react";
+import { Pencil, Trash2, Plus, LogIn, LogOut, Instagram, Youtube, Link2, Upload, X, Globe, Tag, MessageCircle, ShieldCheck, Megaphone, Phone, Loader2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import ImageCropper from "@/components/ImageCropper";
 
@@ -40,6 +58,7 @@ const Admin = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(false);
   const [editing, setEditing] = useState<Product | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [activeTab, setActiveTab] = useState<Tab>("products");
@@ -48,46 +67,96 @@ const Admin = () => {
     const auth = localStorage.getItem("ge-admin-auth");
     if (auth === "true") {
       setAuthenticated(true);
-      setProducts(getProducts());
+      loadProducts();
     }
   }, []);
 
-  const handleLogin = () => {
-    const creds = getAdminCreds();
-    if (username === creds.username && password === creds.password) {
-      setAuthenticated(true);
-      localStorage.setItem("ge-admin-auth", "true");
-      setProducts(getProducts());
-    } else {
-      toast({ title: "Invalid credentials", variant: "destructive" });
+  const loadProducts = async () => {
+    setLoading(true);
+    try {
+      const prods = await getProducts();
+      setProducts(prods);
+    } catch (err) {
+      console.error("Error loading products:", err);
+      toast({ title: "Error loading products", variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleLogin = async () => {
+    setLoading(true);
+    try {
+      const creds = await getAdminCreds();
+      if (username === creds.username && password === creds.password) {
+        setAuthenticated(true);
+        localStorage.setItem("ge-admin-auth", "true");
+        await loadProducts();
+      } else {
+        toast({ title: "Invalid credentials", variant: "destructive" });
+      }
+    } catch (err) {
+      console.error("Login error:", err);
+      toast({ title: "Error during login", variant: "destructive" });
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleLogout = () => {
     setAuthenticated(false);
     localStorage.removeItem("ge-admin-auth");
+    setProducts([]);
   };
 
-  const handleDelete = (id: string) => {
-    const updated = products.filter((p) => p.id !== id);
-    saveProducts(updated);
-    setProducts(updated);
-    toast({ title: "Product deleted" });
-  };
-
-  const handleSave = (product: Product) => {
-    let updated: Product[];
-    if (editing) {
-      updated = products.map((p) => (p.id === product.id ? product : p));
-    } else {
-      product.id = Date.now().toString();
-      updated = [...products, product];
+  const handleDelete = async (id: string) => {
+    setLoading(true);
+    try {
+      const success = await deleteProduct(id);
+      if (success) {
+        const updated = products.filter((p) => p.id !== id);
+        setProducts(updated);
+        toast({ title: "Product deleted" });
+      } else {
+        toast({ title: "Error deleting product", variant: "destructive" });
+      }
+    } catch (err) {
+      console.error("Delete error:", err);
+      toast({ title: "Error deleting product", variant: "destructive" });
+    } finally {
+      setLoading(false);
     }
-    saveProducts(updated);
-    setProducts(updated);
-    setShowForm(false);
-    setEditing(null);
-    toast({ title: editing ? "Product updated" : "Product added" });
+  };
+
+  const handleSave = async (product: Omit<Product, "id">) => {
+    setLoading(true);
+    try {
+      if (editing) {
+        const success = await updateProduct(editing.id, product as any);
+        if (success) {
+          const updated = products.map((p) => (p.id === editing.id ? { ...success } : p));
+          setProducts(updated);
+          toast({ title: "Product updated" });
+        } else {
+          toast({ title: "Error updating product", variant: "destructive" });
+        }
+      } else {
+        const newProduct = await saveProduct(product);
+        if (newProduct) {
+          setProducts([...products, newProduct]);
+          toast({ title: "Product added" });
+        } else {
+          toast({ title: "Error adding product", variant: "destructive" });
+        }
+      }
+      setShowForm(false);
+      setEditing(null);
+    } catch (err) {
+      console.error("Save error:", err);
+      toast({ title: "Error saving product", variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (!authenticated) {
@@ -95,10 +164,27 @@ const Admin = () => {
       <div className="min-h-screen pt-24 flex items-center justify-center px-4">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="glass-card p-8 w-full max-w-sm space-y-5">
           <h1 className="text-2xl font-heading font-bold text-center">Admin Login</h1>
-          <input type="text" placeholder="Username" value={username} onChange={(e) => setUsername(e.target.value)} className="w-full px-4 py-3.5 rounded-xl bg-secondary border border-border text-sm focus:outline-none focus:border-primary transition-colors" />
-          <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleLogin()} className="w-full px-4 py-3.5 rounded-xl bg-secondary border border-border text-sm focus:outline-none focus:border-primary transition-colors" />
-          <button onClick={handleLogin} className="btn-premium w-full flex items-center justify-center gap-2">
-            <LogIn className="w-4 h-4" /> Login
+          <p className="text-xs text-muted-foreground text-center">Default: admin / global2024</p>
+          <input
+            type="text"
+            placeholder="Username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            disabled={loading}
+            className="w-full px-4 py-3.5 rounded-xl bg-secondary border border-border text-sm focus:outline-none focus:border-primary transition-colors disabled:opacity-50"
+          />
+          <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && !loading && handleLogin()}
+            disabled={loading}
+            className="w-full px-4 py-3.5 rounded-xl bg-secondary border border-border text-sm focus:outline-none focus:border-primary transition-colors disabled:opacity-50"
+          />
+          <button onClick={handleLogin} disabled={loading} className="btn-premium w-full flex items-center justify-center gap-2 disabled:opacity-50">
+            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <LogIn className="w-4 h-4" />}
+            {loading ? "Logging in..." : "Login"}
           </button>
         </motion.div>
       </div>
@@ -123,7 +209,10 @@ const Admin = () => {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-2xl md:text-3xl font-heading font-bold">Admin Dashboard</h1>
-          <button onClick={handleLogout} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-secondary text-sm font-medium hover:bg-secondary/80 transition-colors">
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-secondary text-sm font-medium hover:bg-secondary/80 transition-colors"
+          >
             <LogOut className="w-4 h-4" /> Logout
           </button>
         </div>
@@ -143,23 +232,46 @@ const Admin = () => {
           ))}
         </div>
 
-        {activeTab === "products" && (
+        {loading && activeTab === "products" && (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="w-6 h-6 animate-spin text-primary" />
+          </div>
+        )}
+
+        {activeTab === "products" && !loading && (
           <>
-            <button onClick={() => { setEditing(null); setShowForm(true); }} className="btn-premium flex items-center gap-2 mb-6">
+            <button
+              onClick={() => {
+                setEditing(null);
+                setShowForm(true);
+              }}
+              className="btn-premium flex items-center gap-2 mb-6"
+            >
               <Plus className="w-4 h-4" /> Add Product
             </button>
-            {showForm && (
-              <ProductForm product={editing} onSave={handleSave} onCancel={() => { setShowForm(false); setEditing(null); }} />
-            )}
+            {showForm && <ProductForm product={editing} onSave={handleSave} onCancel={() => {
+              setShowForm(false);
+              setEditing(null);
+            }} />}
             <div className="space-y-3">
               {products.map((p) => (
                 <motion.div key={p.id} layout className="glass-card p-4 flex items-center gap-4">
-                  <img src={p.images[0]} alt={p.name} className="w-16 h-12 rounded-xl object-cover" />
+                  {p.images && p.images[0] && (
+                    <img src={p.images[0]} alt={p.name} className="w-16 h-12 rounded-xl object-cover" />
+                  )}
                   <div className="flex-1 min-w-0">
                     <p className="font-heading font-medium text-sm truncate">{p.name}</p>
-                    <p className="text-xs text-muted-foreground">{p.brand} • ₹{p.price.toLocaleString("en-IN")}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {p.brand} • ₹{p.price.toLocaleString("en-IN")}
+                    </p>
                   </div>
-                  <button onClick={() => { setEditing(p); setShowForm(true); }} className="p-2.5 hover:bg-secondary rounded-xl transition-colors">
+                  <button
+                    onClick={() => {
+                      setEditing(p);
+                      setShowForm(true);
+                    }}
+                    className="p-2.5 hover:bg-secondary rounded-xl transition-colors"
+                  >
                     <Pencil className="w-4 h-4" />
                   </button>
                   <button onClick={() => handleDelete(p.id)} className="p-2.5 hover:bg-destructive/20 rounded-xl transition-colors">
@@ -187,20 +299,37 @@ const Admin = () => {
 
 function WhatsAppTab() {
   const [number, setNumber] = useState("");
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setNumber(getWhatsAppNumber());
+    const load = async () => {
+      const num = await getWhatsAppNumber();
+      setNumber(num);
+      setLoading(false);
+    };
+    load();
   }, []);
 
-  const save = () => {
+  const save = async () => {
     const cleaned = number.replace(/\D/g, "");
     if (cleaned.length < 10) {
       toast({ title: "Enter a valid number with country code", variant: "destructive" });
       return;
     }
-    saveWhatsAppNumber(cleaned);
-    toast({ title: "WhatsApp number updated!" });
+    setLoading(true);
+    try {
+      const success = await saveWhatsAppNumber(cleaned);
+      if (success) {
+        toast({ title: "WhatsApp number updated!" });
+      } else {
+        toast({ title: "Error updating number", variant: "destructive" });
+      }
+    } finally {
+      setLoading(false);
+    }
   };
+
+  if (loading) return <div><Loader2 className="w-6 h-6 animate-spin" /></div>;
 
   return (
     <div className="space-y-6 max-w-lg">
@@ -209,9 +338,7 @@ function WhatsAppTab() {
         This number is used for all WhatsApp redirections — product enquiries, cart checkout, and the "Chat on WhatsApp" buttons.
       </p>
       <div>
-        <label className="text-xs font-medium text-muted-foreground mb-1 block">
-          Number with country code (e.g. 917879707696)
-        </label>
+        <label className="text-xs font-medium text-muted-foreground mb-1 block">Number with country code (e.g. 917879707696)</label>
         <input
           type="tel"
           placeholder="917879707696"
@@ -220,36 +347,59 @@ function WhatsAppTab() {
           className="w-full px-4 py-3 rounded-xl bg-secondary border border-border text-sm focus:outline-none focus:border-primary transition-colors"
         />
       </div>
-      <button onClick={save} className="btn-premium">Save Number</button>
+      <button onClick={save} disabled={loading} className="btn-premium disabled:opacity-50">
+        {loading ? "Saving..." : "Save Number"}
+      </button>
     </div>
   );
 }
 
 function ContactInfoTab() {
-  const [info, setInfo] = useState<ContactInfo>(() => getContactInfo());
+  const [info, setInfo] = useState<ContactInfo | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const load = async () => {
+      const contactInfo = await getContactInfo();
+      setInfo(contactInfo);
+      setLoading(false);
+    };
+    load();
+  }, []);
 
   const update = (key: keyof ContactInfo, value: string) =>
-    setInfo((prev) => ({ ...prev, [key]: value }));
+    setInfo((prev) => prev ? { ...prev, [key]: value } : null);
 
-  const save = () => {
-    if (!info.phone.trim() || !info.email.trim() || !info.address.trim()) {
+  const save = async () => {
+    if (!info || !info.phone.trim() || !info.email.trim() || !info.address.trim()) {
       toast({ title: "Phone, email and address are required", variant: "destructive" });
       return;
     }
-    saveContactInfo({
-      phone: info.phone.trim(),
-      email: info.email.trim(),
-      address: info.address.trim(),
-      hours: info.hours.trim(),
-    });
-    toast({ title: "Contact details updated!" });
+    setLoading(true);
+    try {
+      const success = await saveContactInfo({
+        phone: info.phone.trim(),
+        email: info.email.trim(),
+        address: info.address.trim(),
+        hours: info.hours.trim(),
+      });
+      if (success) {
+        toast({ title: "Contact details updated!" });
+      } else {
+        toast({ title: "Error updating contact info", variant: "destructive" });
+      }
+    } finally {
+      setLoading(false);
+    }
   };
+
+  if (loading || !info) return <div><Loader2 className="w-6 h-6 animate-spin" /></div>;
 
   return (
     <div className="space-y-6 max-w-2xl">
       <h2 className="text-lg font-heading font-bold">Public Contact Information</h2>
       <p className="text-sm text-muted-foreground">
-        Shown on the Contact page and in the site footer. The phone here is for display & call links — to update the WhatsApp redirection number, use the WhatsApp tab.
+        Shown on the Contact page and in the site footer. The phone here is for display & call links.
       </p>
       <div className="grid grid-cols-1 gap-4">
         <div>
@@ -293,7 +443,9 @@ function ContactInfoTab() {
           />
         </div>
       </div>
-      <button onClick={save} className="btn-premium">Save Contact Info</button>
+      <button onClick={save} disabled={loading} className="btn-premium disabled:opacity-50">
+        {loading ? "Saving..." : "Save Contact Info"}
+      </button>
     </div>
   );
 }
@@ -301,41 +453,58 @@ function ContactInfoTab() {
 function ListManagerTab({ kind }: { kind: "categories" | "brands" }) {
   const [items, setItems] = useState<string[]>([]);
   const [newItem, setNewItem] = useState("");
+  const [loading, setLoading] = useState(true);
 
-  const load = () => setItems(kind === "categories" ? getCategories() : getBrands());
-  useEffect(load, [kind]);
+  useEffect(() => {
+    const load = async () => {
+      const list = kind === "categories" ? await getCategories() : await getBrands();
+      setItems(list);
+      setLoading(false);
+    };
+    load();
+  }, [kind]);
 
-  const persist = (list: string[]) => {
-    if (kind === "categories") saveCategories(list);
-    else saveBrands(list);
-    setItems(list);
-  };
-
-  const add = () => {
+  const add = async () => {
     const trimmed = newItem.trim();
     if (!trimmed) return;
     if (items.some((i) => i.toLowerCase() === trimmed.toLowerCase())) {
       toast({ title: "Already exists", variant: "destructive" });
       return;
     }
-    persist([...items, trimmed]);
-    setNewItem("");
-    toast({ title: `${kind === "categories" ? "Category" : "Brand"} added` });
+    setLoading(true);
+    try {
+      const success = kind === "categories" ? await addCategory(trimmed) : await addBrand(trimmed);
+      if (success) {
+        setItems([...items, trimmed]);
+        setNewItem("");
+        toast({ title: `${kind === "categories" ? "Category" : "Brand"} added` });
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const remove = (item: string) => {
-    persist(items.filter((i) => i !== item));
-    toast({ title: "Removed" });
+  const remove = async (item: string) => {
+    setLoading(true);
+    try {
+      const success = kind === "categories" ? await deleteCategory(item) : await deleteBrand(item);
+      if (success) {
+        setItems(items.filter((i) => i !== item));
+        toast({ title: "Removed" });
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   const label = kind === "categories" ? "Category" : "Brand";
 
+  if (loading && items.length === 0) return <div><Loader2 className="w-6 h-6 animate-spin" /></div>;
+
   return (
     <div className="space-y-6 max-w-2xl">
       <h2 className="text-lg font-heading font-bold">Manage {label}s</h2>
-      <p className="text-sm text-muted-foreground">
-        These appear in the product form and on the Products filter page.
-      </p>
+      <p className="text-sm text-muted-foreground">These appear in the product form and on the Products filter page.</p>
       <div className="flex gap-3">
         <input
           type="text"
@@ -343,20 +512,19 @@ function ListManagerTab({ kind }: { kind: "categories" | "brands" }) {
           value={newItem}
           onChange={(e) => setNewItem(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && add()}
-          className="flex-1 px-4 py-3 rounded-xl bg-secondary border border-border text-sm focus:outline-none focus:border-primary transition-colors"
+          disabled={loading}
+          className="flex-1 px-4 py-3 rounded-xl bg-secondary border border-border text-sm focus:outline-none focus:border-primary transition-colors disabled:opacity-50"
         />
-        <button onClick={add} className="btn-premium px-6">
+        <button onClick={add} disabled={loading} className="btn-premium px-6 disabled:opacity-50">
           <Plus className="w-4 h-4" />
         </button>
       </div>
       <div className="flex flex-wrap gap-2">
-        {items.length === 0 && (
-          <p className="text-sm text-muted-foreground">No {label.toLowerCase()}s yet.</p>
-        )}
+        {items.length === 0 && <p className="text-sm text-muted-foreground">No {label.toLowerCase()}s yet.</p>}
         {items.map((item) => (
           <div key={item} className="glass-card flex items-center gap-2 pl-4 pr-2 py-2 rounded-xl">
             <span className="text-sm font-medium">{item}</span>
-            <button onClick={() => remove(item)} className="p-1.5 hover:bg-destructive/20 rounded-lg transition-colors">
+            <button onClick={() => remove(item)} disabled={loading} className="p-1.5 hover:bg-destructive/20 rounded-lg transition-colors disabled:opacity-50">
               <X className="w-3.5 h-3.5 text-destructive" />
             </button>
           </div>
@@ -369,19 +537,30 @@ function ListManagerTab({ kind }: { kind: "categories" | "brands" }) {
 function ChannelLinksTab() {
   const [instagram, setInstagram] = useState("");
   const [youtube, setYoutube] = useState("");
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const stored = localStorage.getItem("ge-channel-links");
-    if (stored) {
-      const parsed = JSON.parse(stored);
-      setInstagram(parsed.instagram || "");
-      setYoutube(parsed.youtube || "");
-    }
+    const load = async () => {
+      const links = await fetchChannelLinks();
+      setInstagram(links.instagram || "");
+      setYoutube(links.youtube || "");
+      setLoading(false);
+    };
+    load();
   }, []);
 
-  const save = () => {
-    localStorage.setItem("ge-channel-links", JSON.stringify({ instagram, youtube }));
-    toast({ title: "Channel links saved!" });
+  const save = async () => {
+    setLoading(true);
+    try {
+      const success = await saveChannelLinks({ instagram, youtube });
+      if (success) {
+        toast({ title: "Channel links saved!" });
+      } else {
+        toast({ title: "Error saving links", variant: "destructive" });
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -390,43 +569,74 @@ function ChannelLinksTab() {
       <div className="space-y-4">
         <div>
           <label className="text-xs font-medium text-muted-foreground mb-1 block">Instagram Profile URL</label>
-          <input type="text" placeholder="https://instagram.com/yourpage" value={instagram} onChange={(e) => setInstagram(e.target.value)} className="w-full px-4 py-3 rounded-xl bg-secondary border border-border text-sm focus:outline-none focus:border-primary transition-colors" />
+          <input
+            type="text"
+            placeholder="https://instagram.com/yourpage"
+            value={instagram}
+            onChange={(e) => setInstagram(e.target.value)}
+            disabled={loading}
+            className="w-full px-4 py-3 rounded-xl bg-secondary border border-border text-sm focus:outline-none focus:border-primary transition-colors disabled:opacity-50"
+          />
         </div>
         <div>
           <label className="text-xs font-medium text-muted-foreground mb-1 block">YouTube Channel URL</label>
-          <input type="text" placeholder="https://youtube.com/@yourchannel" value={youtube} onChange={(e) => setYoutube(e.target.value)} className="w-full px-4 py-3 rounded-xl bg-secondary border border-border text-sm focus:outline-none focus:border-primary transition-colors" />
+          <input
+            type="text"
+            placeholder="https://youtube.com/@yourchannel"
+            value={youtube}
+            onChange={(e) => setYoutube(e.target.value)}
+            disabled={loading}
+            className="w-full px-4 py-3 rounded-xl bg-secondary border border-border text-sm focus:outline-none focus:border-primary transition-colors disabled:opacity-50"
+          />
         </div>
-        <button onClick={save} className="btn-premium">Save Links</button>
+        <button onClick={save} disabled={loading} className="btn-premium disabled:opacity-50">
+          {loading ? "Saving..." : "Save Links"}
+        </button>
       </div>
     </div>
   );
 }
 
 function MediaLinksTab({ type }: { type: "reels" | "videos" }) {
-  const storageKey = type === "reels" ? "ge-instagram-reels" : "ge-youtube-videos";
   const [links, setLinks] = useState<string[]>([]);
   const [newLink, setNewLink] = useState("");
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const stored = localStorage.getItem(storageKey);
-    if (stored) setLinks(JSON.parse(stored));
-  }, [storageKey]);
+    const load = async () => {
+      const list = type === "reels" ? await fetchInstagramReels() : await fetchYoutubeVideos();
+      setLinks(list);
+      setLoading(false);
+    };
+    load();
+  }, [type]);
 
-  const save = (updated: string[]) => {
-    setLinks(updated);
-    localStorage.setItem(storageKey, JSON.stringify(updated));
-  };
-
-  const addLink = () => {
+  const addLink = async () => {
     if (!newLink.trim()) return;
-    save([...links, newLink.trim()]);
-    setNewLink("");
-    toast({ title: "Link added" });
+    setLoading(true);
+    try {
+      const success = type === "reels" ? await addInstagramReel(newLink.trim()) : await addYoutubeVideo(newLink.trim());
+      if (success) {
+        setLinks([...links, newLink.trim()]);
+        setNewLink("");
+        toast({ title: "Link added" });
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const removeLink = (index: number) => {
-    save(links.filter((_, i) => i !== index));
-    toast({ title: "Link removed" });
+  const removeLink = async (url: string) => {
+    setLoading(true);
+    try {
+      const success = type === "reels" ? await deleteInstagramReel(url) : await deleteYoutubeVideo(url);
+      if (success) {
+        setLinks(links.filter((l) => l !== url));
+        toast({ title: "Link removed" });
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -438,21 +648,24 @@ function MediaLinksTab({ type }: { type: "reels" | "videos" }) {
           value={newLink}
           onChange={(e) => setNewLink(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && addLink()}
-          className="flex-1 px-4 py-3 rounded-xl bg-secondary border border-border text-sm focus:outline-none focus:border-primary transition-colors"
+          disabled={loading}
+          className="flex-1 px-4 py-3 rounded-xl bg-secondary border border-border text-sm focus:outline-none focus:border-primary transition-colors disabled:opacity-50"
         />
-        <button onClick={addLink} className="btn-premium px-6">
+        <button onClick={addLink} disabled={loading} className="btn-premium px-6 disabled:opacity-50">
           <Plus className="w-4 h-4" />
         </button>
       </div>
       <div className="space-y-2">
         {links.length === 0 && (
-          <p className="text-center text-muted-foreground py-8">No {type === "reels" ? "reels" : "videos"} added yet. Links added here will appear on the homepage.</p>
+          <p className="text-center text-muted-foreground py-8">
+            No {type === "reels" ? "reels" : "videos"} added yet. Links added here will appear on the homepage.
+          </p>
         )}
-        {links.map((link, i) => (
-          <div key={i} className="glass-card p-4 flex items-center gap-3">
+        {links.map((link) => (
+          <div key={link} className="glass-card p-4 flex items-center gap-3">
             <Link2 className="w-4 h-4 text-primary shrink-0" />
             <span className="flex-1 text-sm truncate">{link}</span>
-            <button onClick={() => removeLink(i)} className="p-2 hover:bg-destructive/20 rounded-xl transition-colors">
+            <button onClick={() => removeLink(link)} disabled={loading} className="p-2 hover:bg-destructive/20 rounded-xl transition-colors disabled:opacity-50">
               <Trash2 className="w-4 h-4 text-destructive" />
             </button>
           </div>
@@ -468,31 +681,39 @@ async function compressImage(file: File, maxSizeKB = 500): Promise<string> {
     reader.onload = (e) => {
       const img = new window.Image();
       img.onload = () => {
-        const canvas = document.createElement("canvas");
         let { width, height } = img;
-
-        // Scale down if very large
         const maxDim = 1200;
         if (width > maxDim || height > maxDim) {
           const ratio = Math.min(maxDim / width, maxDim / height);
           width = Math.round(width * ratio);
           height = Math.round(height * ratio);
         }
-
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext("2d")!;
-        ctx.drawImage(img, 0, 0, width, height);
-
-        // Try different quality levels
         let quality = 0.85;
-        let result = canvas.toDataURL("image/jpeg", quality);
-
-        while (result.length > maxSizeKB * 1370 && quality > 0.1) {
-          quality -= 0.1;
+        let result = "";
+        let canvas = document.createElement("canvas");
+        let ctx = canvas.getContext("2d")!;
+        let attempt = 0;
+        // Iteratively reduce size and quality until under maxSizeKB
+        while (true) {
+          canvas.width = width;
+          canvas.height = height;
+          ctx.clearRect(0, 0, width, height);
+          ctx.drawImage(img, 0, 0, width, height);
           result = canvas.toDataURL("image/jpeg", quality);
+          // Check if under size or quality is too low
+          if (result.length <= maxSizeKB * 1024 || (quality <= 0.2 && (width <= 400 || height <= 400))) {
+            break;
+          }
+          // Lower quality first, then reduce dimensions if needed
+          if (quality > 0.2) {
+            quality -= 0.07;
+          } else {
+            width = Math.round(width * 0.92);
+            height = Math.round(height * 0.92);
+          }
+          attempt++;
+          if (attempt > 18) break; // Prevent infinite loop
         }
-
         resolve(result);
       };
       img.src = e.target?.result as string;
@@ -510,8 +731,9 @@ function fileToDataUrl(file: File): Promise<string> {
   });
 }
 
-// Compress a data URL while preserving its natural aspect ratio (no cropping).
 async function compressDataUrl(dataUrl: string, maxDim = 1600, quality = 0.85): Promise<string> {
+  // Enforce a max file size (default 700KB) with iterative resizing and quality reduction
+  const maxSizeKB = 700;
   return new Promise((resolve) => {
     const img = new window.Image();
     img.onload = () => {
@@ -521,16 +743,28 @@ async function compressDataUrl(dataUrl: string, maxDim = 1600, quality = 0.85): 
         width = Math.round(width * ratio);
         height = Math.round(height * ratio);
       }
-      const canvas = document.createElement("canvas");
-      canvas.width = width;
-      canvas.height = height;
-      const ctx = canvas.getContext("2d")!;
-      ctx.drawImage(img, 0, 0, width, height);
       let q = quality;
-      let out = canvas.toDataURL("image/jpeg", q);
-      while (out.length > 700 * 1370 && q > 0.2) {
-        q -= 0.1;
+      let out = "";
+      let canvas = document.createElement("canvas");
+      let ctx = canvas.getContext("2d")!;
+      let attempt = 0;
+      while (true) {
+        canvas.width = width;
+        canvas.height = height;
+        ctx.clearRect(0, 0, width, height);
+        ctx.drawImage(img, 0, 0, width, height);
         out = canvas.toDataURL("image/jpeg", q);
+        if (out.length <= maxSizeKB * 1024 || (q <= 0.2 && (width <= 400 || height <= 400))) {
+          break;
+        }
+        if (q > 0.2) {
+          q -= 0.07;
+        } else {
+          width = Math.round(width * 0.92);
+          height = Math.round(height * 0.92);
+        }
+        attempt++;
+        if (attempt > 18) break;
       }
       resolve(out);
     };
@@ -543,392 +777,298 @@ function BannerTab() {
   const [rawImage, setRawImage] = useState<string | null>(null);
   const [link, setLink] = useState("");
   const [alt, setAlt] = useState("");
+  const [loading, setLoading] = useState(true);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    const b = getBanner();
-    setBannerState(b);
-    setLink(b?.link || "");
-    setAlt(b?.alt || "");
+    const load = async () => {
+      const b = await getBanner();
+      setBannerState(b);
+      setLink(b?.link || "");
+      setAlt(b?.alt || "");
+      setLoading(false);
+    };
+    load();
   }, []);
 
   const onPick = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const data = await fileToDataUrl(file);
-    // Save banner immediately at its natural aspect ratio (compressed only).
-    const compressed = await compressDataUrl(data, 1600, 0.85);
-    const updated: Banner = {
-      image: compressed,
-      link: link.trim() || undefined,
-      alt: alt.trim() || undefined,
-    };
-    saveBanner(updated);
-    setBannerState(updated);
-    toast({ title: "Banner uploaded — displayed at its original size" });
-    if (inputRef.current) inputRef.current.value = "";
+    setLoading(true);
+    try {
+      const data = await fileToDataUrl(file);
+      const compressed = await compressDataUrl(data, 1600, 0.85);
+      const uploaded = await uploadImageToStorage(compressed, "banners");
+      if (!uploaded) {
+        toast({ title: "Banner upload failed", variant: "destructive" });
+        return;
+      }
+      const updated: Banner = {
+        image: uploaded,
+        link: link.trim() || undefined,
+        alt: alt.trim() || undefined,
+      };
+      const success = await saveBanner(updated);
+      if (success) {
+        setBannerState(updated);
+        toast({ title: "Banner uploaded — displayed at its original size" });
+      }
+    } finally {
+      setLoading(false);
+      if (inputRef.current) inputRef.current.value = "";
+    }
   };
 
-  const openCropper = () => {
-    // Optional: let admin re-crop the existing banner if they want to.
-    if (banner?.image) setRawImage(banner.image);
-  };
-
-  const onCropDone = (dataUrl: string) => {
-    const updated: Banner = { image: dataUrl, link: link.trim() || undefined, alt: alt.trim() || undefined };
-    saveBanner(updated);
-    setBannerState(updated);
-    setRawImage(null);
-    toast({ title: "Banner cropped and saved" });
-  };
-
-  const updateMeta = () => {
+  const updateMeta = async () => {
     if (!banner) return;
-    const updated: Banner = { ...banner, link: link.trim() || undefined, alt: alt.trim() || undefined };
-    saveBanner(updated);
-    setBannerState(updated);
-    toast({ title: "Banner details saved" });
+    setLoading(true);
+    try {
+      const updated: Banner = { ...banner, link: link.trim() || undefined, alt: alt.trim() || undefined };
+      const success = await saveBanner(updated);
+      if (success) {
+        setBannerState(updated);
+        toast({ title: "Banner details saved" });
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const removeBanner = () => {
-    saveBanner(null);
-    setBannerState(null);
-    setLink("");
-    setAlt("");
-    toast({ title: "Banner removed — homepage skips it now" });
+  const removeBanner = async () => {
+    setLoading(true);
+    try {
+      const success = await saveBanner(null);
+      if (success) {
+        setBannerState(null);
+        setLink("");
+        setAlt("");
+        toast({ title: "Banner removed — homepage skips it now" });
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div className="space-y-6 max-w-3xl">
-      <div>
-        <h2 className="text-lg font-heading font-bold">Homepage Promo Banner</h2>
-        <p className="text-sm text-muted-foreground mt-1">
-          Upload any image — landscape, portrait or square. It will be shown at its natural aspect ratio on the homepage (right below the hero). Remove it anytime and the section disappears automatically.
-        </p>
-      </div>
-
-      {banner?.image ? (
+    <div className="space-y-6 max-w-2xl">
+      <h2 className="text-lg font-heading font-bold">Homepage Banner</h2>
+      {banner && (
         <div className="space-y-4">
-          <div className="rounded-2xl overflow-hidden glass-card flex items-center justify-center bg-black/20 p-2">
-            <img
-              src={banner.image}
-              alt={banner.alt || "Banner"}
-              className="w-auto h-auto max-w-full max-h-80 object-contain rounded-lg"
-            />
+          <img src={banner.image} alt={banner.alt} className="w-full h-64 rounded-xl object-cover border border-border" />
+          <div className="space-y-2">
+            <div>
+              <label className="text-xs font-medium text-muted-foreground mb-1 block">Link (optional)</label>
+              <input
+                type="text"
+                placeholder="https://example.com"
+                value={link}
+                onChange={(e) => setLink(e.target.value)}
+                disabled={loading}
+                className="w-full px-4 py-3 rounded-xl bg-secondary border border-border text-sm focus:outline-none focus:border-primary transition-colors disabled:opacity-50"
+              />
+            </div>
+            <div>
+              <label className="text-xs font-medium text-muted-foreground mb-1 block">Alt text (optional)</label>
+              <input
+                type="text"
+                placeholder="Banner description"
+                value={alt}
+                onChange={(e) => setAlt(e.target.value)}
+                disabled={loading}
+                className="w-full px-4 py-3 rounded-xl bg-secondary border border-border text-sm focus:outline-none focus:border-primary transition-colors disabled:opacity-50"
+              />
+            </div>
           </div>
-          <div className="grid sm:grid-cols-2 gap-3">
-            <input
-              type="text"
-              placeholder="Optional link (e.g. /products or full URL)"
-              value={link}
-              onChange={(e) => setLink(e.target.value)}
-              className="px-4 py-3 rounded-xl bg-secondary border border-border text-sm focus:outline-none focus:border-primary transition-colors"
-            />
-            <input
-              type="text"
-              placeholder="Alt text (for accessibility)"
-              value={alt}
-              onChange={(e) => setAlt(e.target.value)}
-              className="px-4 py-3 rounded-xl bg-secondary border border-border text-sm focus:outline-none focus:border-primary transition-colors"
-            />
-          </div>
-          <div className="flex flex-wrap gap-3">
-            <button onClick={updateMeta} className="btn-premium">Save Details</button>
-            <button onClick={() => inputRef.current?.click()} className="btn-outline-premium inline-flex items-center gap-2">
-              <Upload className="w-4 h-4" /> Replace Image
+          <div className="flex gap-3">
+            <button onClick={updateMeta} disabled={loading} className="btn-premium disabled:opacity-50">
+              Update Details
             </button>
-            <button
-              onClick={openCropper}
-              className="px-5 py-3 rounded-xl bg-secondary border border-border text-sm font-semibold hover:bg-secondary/80 transition-colors"
-            >
-              Crop (Optional)
-            </button>
-            <button
-              onClick={removeBanner}
-              className="px-5 py-3 rounded-xl bg-destructive/15 border border-destructive/40 text-destructive text-sm font-semibold hover:bg-destructive/25 transition-colors inline-flex items-center gap-2"
-            >
-              <Trash2 className="w-4 h-4" /> Remove Banner
+            <button onClick={removeBanner} disabled={loading} className="btn-secondary disabled:opacity-50">
+              Remove Banner
             </button>
           </div>
-        </div>
-      ) : (
-        <div
-          onClick={() => inputRef.current?.click()}
-          className="border-2 border-dashed border-border rounded-2xl p-10 text-center cursor-pointer hover:border-primary/50 transition-colors"
-        >
-          <Upload className="w-10 h-10 mx-auto text-muted-foreground mb-3" />
-          <p className="text-sm font-medium">Click to upload a banner image</p>
-          <p className="text-xs text-muted-foreground mt-1">
-            Any size or aspect — uploaded as-is. JPG / PNG.
-          </p>
         </div>
       )}
-
-      <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={onPick} />
-
-      {rawImage && (
-        <ImageCropper
-          image={rawImage}
-          aspect={undefined}
-          title="Crop Banner"
-          onCancel={() => setRawImage(null)}
-          onCropComplete={onCropDone}
-        />
+      {!banner && (
+        <div className="border-2 border-dashed border-border rounded-xl p-8 text-center space-y-4">
+          <Upload className="w-8 h-8 text-muted-foreground mx-auto" />
+          <p className="text-sm text-muted-foreground">No banner uploaded yet</p>
+          <input ref={inputRef} type="file" accept="image/*" onChange={onPick} disabled={loading} className="hidden" />
+          <button onClick={() => inputRef.current?.click()} disabled={loading} className="btn-premium disabled:opacity-50">
+            Choose Image
+          </button>
+        </div>
       )}
     </div>
   );
 }
 
 function CredentialsTab() {
-  const [currentPass, setCurrentPass] = useState("");
-  const [newUsername, setNewUsername] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+  const [username, setUsername] = useState("admin");
+  const [password, setPassword] = useState("global2024");
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    setNewUsername(getAdminCreds().username);
+    const load = async () => {
+      const creds = await getAdminCreds();
+      setUsername(creds.username);
+      setPassword(creds.password);
+    };
+    load();
   }, []);
-
-  const save = () => {
-    const creds = getAdminCreds();
-    if (currentPass !== creds.password) {
-      toast({ title: "Current password is incorrect", variant: "destructive" });
-      return;
-    }
-    if (!newUsername.trim() || newUsername.length < 3) {
-      toast({ title: "Username must be at least 3 characters", variant: "destructive" });
-      return;
-    }
-    if (newPassword.length < 6) {
-      toast({ title: "New password must be at least 6 characters", variant: "destructive" });
-      return;
-    }
-    if (newPassword !== confirmPassword) {
-      toast({ title: "Passwords don't match", variant: "destructive" });
-      return;
-    }
-    saveAdminCreds({ username: newUsername.trim(), password: newPassword });
-    setCurrentPass("");
-    setNewPassword("");
-    setConfirmPassword("");
-    toast({ title: "Credentials updated — use them on next login" });
-  };
 
   return (
     <div className="space-y-6 max-w-lg">
-      <div>
-        <h2 className="text-lg font-heading font-bold">Admin Login Credentials</h2>
-        <p className="text-sm text-muted-foreground mt-1">
-          Change your admin username and password. Stored locally on this device.
+      <div className="glass-card p-6 space-y-4 border border-amber-500/30 bg-amber-500/5">
+        <h2 className="text-lg font-heading font-bold">Admin Credentials</h2>
+        <p className="text-sm text-muted-foreground">
+          Default username and password have been set and will not be changed by this interface to ensure security.
+        </p>
+        <div className="space-y-3 pt-4">
+          <div>
+            <label className="text-xs font-medium text-muted-foreground mb-1 block">Username</label>
+            <div className="px-4 py-3 rounded-xl bg-secondary border border-border text-sm font-mono">
+              {username}
+            </div>
+          </div>
+          <div>
+            <label className="text-xs font-medium text-muted-foreground mb-1 block">Password</label>
+            <div className="px-4 py-3 rounded-xl bg-secondary border border-border text-sm font-mono">
+              {'•'.repeat(password.length)}
+            </div>
+          </div>
+        </div>
+        <p className="text-xs text-amber-600 pt-4">
+          ⓘ Credentials are locked and cannot be changed through this interface for security purposes.
         </p>
       </div>
-      <div className="space-y-3">
-        <div>
-          <label className="text-xs font-medium text-muted-foreground mb-1 block">Current Password</label>
-          <input
-            type="password"
-            value={currentPass}
-            onChange={(e) => setCurrentPass(e.target.value)}
-            className="w-full px-4 py-3 rounded-xl bg-secondary border border-border text-sm focus:outline-none focus:border-primary transition-colors"
-          />
-        </div>
-        <div>
-          <label className="text-xs font-medium text-muted-foreground mb-1 block">New Username</label>
-          <input
-            type="text"
-            value={newUsername}
-            onChange={(e) => setNewUsername(e.target.value)}
-            className="w-full px-4 py-3 rounded-xl bg-secondary border border-border text-sm focus:outline-none focus:border-primary transition-colors"
-          />
-        </div>
-        <div>
-          <label className="text-xs font-medium text-muted-foreground mb-1 block">New Password</label>
-          <input
-            type="password"
-            value={newPassword}
-            onChange={(e) => setNewPassword(e.target.value)}
-            className="w-full px-4 py-3 rounded-xl bg-secondary border border-border text-sm focus:outline-none focus:border-primary transition-colors"
-          />
-        </div>
-        <div>
-          <label className="text-xs font-medium text-muted-foreground mb-1 block">Confirm New Password</label>
-          <input
-            type="password"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            className="w-full px-4 py-3 rounded-xl bg-secondary border border-border text-sm focus:outline-none focus:border-primary transition-colors"
-          />
-        </div>
-      </div>
-      <button onClick={save} className="btn-premium">Update Credentials</button>
     </div>
   );
 }
 
-function ProductForm({
-  product,
-  onSave,
-  onCancel,
-}: {
+interface ProductFormProps {
   product: Product | null;
-  onSave: (p: Product) => void;
+  onSave: (product: Omit<Product, "id">) => void;
   onCancel: () => void;
-}) {
-  const brandList = getBrands();
-  const categoryList = getCategories();
-  const [form, setForm] = useState<Product>(
-    product || {
-      id: "",
-      name: "",
-      price: 0,
-      brand: brandList[0] || "",
-      category: categoryList[0] || "",
-      specs: "",
-      description: "",
-      images: [],
-      featured: false,
-    }
-  );
-  const [uploading, setUploading] = useState(false);
-  const [thumbnailIndex, setThumbnailIndex] = useState(0);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [pendingFiles, setPendingFiles] = useState<string[]>([]);
-  const [cropIndex, setCropIndex] = useState(0);
+}
 
-  const update = (key: keyof Product, value: any) => setForm({ ...form, [key]: value });
+function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
+  const [name, setName] = useState(product?.name || "");
+  const [price, setPrice] = useState(product?.price || 0);
+  const [brand, setBrand] = useState(product?.brand || "");
+  const [category, setCategory] = useState(product?.category || "");
+  const [specs, setSpecs] = useState(product?.specs || "");
+  const [description, setDescription] = useState(product?.description || "");
+  const [images, setImages] = useState<string[]>(product?.images || []);
+  const [featured, setFeatured] = useState(product?.featured || false);
+  const [brands, setBrands] = useState<string[]>([]);
+  const [categories, setCategories] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const handleImageUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files?.length) return;
-    const datas: string[] = [];
-    for (const file of Array.from(files)) {
-      datas.push(await fileToDataUrl(file));
-    }
-    setPendingFiles(datas);
-    setCropIndex(0);
-    if (fileInputRef.current) fileInputRef.current.value = "";
+  useEffect(() => {
+    const load = async () => {
+      const [b, c] = await Promise.all([getBrands(), getCategories()]);
+      setBrands(b);
+      setCategories(c);
+      setLoading(false);
+    };
+    load();
   }, []);
 
-  const handleCropDone = (dataUrl: string) => {
-    setForm((prev) => ({ ...prev, images: [...prev.images, dataUrl] }));
-    if (cropIndex + 1 < pendingFiles.length) {
-      setCropIndex(cropIndex + 1);
-    } else {
-      const total = pendingFiles.length;
-      setPendingFiles([]);
-      setCropIndex(0);
-      toast({ title: `${total} image(s) added` });
-    }
-  };
-
-  const handleCropCancel = () => {
-    // Skip current; if more remain, advance, else close
-    if (cropIndex + 1 < pendingFiles.length) {
-      setCropIndex(cropIndex + 1);
-    } else {
-      setPendingFiles([]);
-      setCropIndex(0);
-    }
-  };
-
-  const removeImage = (index: number) => {
-    const updated = form.images.filter((_, i) => i !== index);
-    setForm({ ...form, images: updated });
-    if (thumbnailIndex >= updated.length) setThumbnailIndex(0);
-  };
-
   const handleSave = () => {
-    if (!form.name || !form.price) {
-      toast({ title: "Name and price are required", variant: "destructive" });
+    if (!name.trim() || !price || !brand || !category) {
+      toast({ title: "Please fill all required fields", variant: "destructive" });
       return;
     }
-    // Reorder images so thumbnail is first
-    if (thumbnailIndex > 0 && form.images.length > 1) {
-      const reordered = [...form.images];
-      const [thumb] = reordered.splice(thumbnailIndex, 1);
-      reordered.unshift(thumb);
-      onSave({ ...form, images: reordered });
-    } else {
-      onSave(form);
+    onSave({
+      name: name.trim(),
+      price: Number(price),
+      brand,
+      category,
+      specs: specs.trim(),
+      description: description.trim(),
+      images,
+      featured,
+    });
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const dataUrl = await compressImage(file);
+      const uploaded = await uploadImageToStorage(dataUrl, "products");
+      if (!uploaded) {
+        toast({ title: "Image upload failed", variant: "destructive" });
+        return;
+      }
+      setImages([...images, uploaded]);
+    } catch (err) {
+      console.error("Product image upload error:", err);
+      toast({ title: "Image upload failed", variant: "destructive" });
     }
   };
 
+  if (loading) return <div><Loader2 className="w-6 h-6 animate-spin" /></div>;
+
   return (
-    <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="glass-card p-6 md:p-8 mb-8 space-y-5">
-      <h2 className="text-lg font-heading font-bold">{product ? "Edit" : "Add"} Product</h2>
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="glass-card p-6 mb-6 space-y-4 border border-primary/30"
+    >
+      <h3 className="text-lg font-heading font-bold">{product ? "Edit Product" : "Add New Product"}</h3>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <input placeholder="Product Name" value={form.name} onChange={(e) => update("name", e.target.value)} className="px-4 py-3 rounded-xl bg-secondary border border-border text-sm focus:outline-none focus:border-primary transition-colors" />
-        <input placeholder="Price" type="number" value={form.price || ""} onChange={(e) => update("price", Number(e.target.value))} className="px-4 py-3 rounded-xl bg-secondary border border-border text-sm focus:outline-none focus:border-primary transition-colors" />
-        <div>
-          <h4 className="text-xs font-medium text-muted-foreground mb-2">Brand</h4>
-          <div className="flex flex-wrap gap-2">
-            {[...brandList, "Other"].map((b) => (
-              <button key={b} type="button" onClick={() => update("brand", b)} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${form.brand === b ? "bg-primary text-primary-foreground" : "bg-secondary hover:bg-secondary/80 border border-border"}`}>
-                {b}
+        <input type="text" placeholder="Product name" value={name} onChange={(e) => setName(e.target.value)} className="px-4 py-3 rounded-xl bg-secondary border border-border text-sm focus:outline-none focus:border-primary transition-colors" />
+        <input type="number" placeholder="Price" value={price} onChange={(e) => setPrice(Number(e.target.value))} className="px-4 py-3 rounded-xl bg-secondary border border-border text-sm focus:outline-none focus:border-primary transition-colors" />
+        <select value={brand} onChange={(e) => setBrand(e.target.value)} className="px-4 py-3 rounded-xl bg-secondary border border-border text-sm focus:outline-none focus:border-primary transition-colors">
+          <option value="">Select Brand</option>
+          {brands.map((b) => (
+            <option key={b} value={b}>
+              {b}
+            </option>
+          ))}
+        </select>
+        <select value={category} onChange={(e) => setCategory(e.target.value)} className="px-4 py-3 rounded-xl bg-secondary border border-border text-sm focus:outline-none focus:border-primary transition-colors">
+          <option value="">Select Category</option>
+          {categories.map((c) => (
+            <option key={c} value={c}>
+              {c}
+            </option>
+          ))}
+        </select>
+      </div>
+      <textarea placeholder="Specifications" value={specs} onChange={(e) => setSpecs(e.target.value)} rows={2} className="w-full px-4 py-3 rounded-xl bg-secondary border border-border text-sm focus:outline-none focus:border-primary transition-colors resize-none" />
+      <textarea placeholder="Description" value={description} onChange={(e) => setDescription(e.target.value)} rows={3} className="w-full px-4 py-3 rounded-xl bg-secondary border border-border text-sm focus:outline-none focus:border-primary transition-colors resize-none" />
+      <div>
+        <label className="text-xs font-medium text-muted-foreground mb-2 block">Images</label>
+        <input type="file" accept="image/*" onChange={handleImageUpload} className="block mb-2" />
+        <div className="flex flex-wrap gap-2">
+          {images.map((img, i) => (
+            <div key={i} className="relative">
+              <img src={img} alt="" className="w-20 h-20 rounded-xl object-cover" />
+              <button
+                onClick={() => setImages(images.filter((_, j) => j !== i))}
+                className="absolute -top-2 -right-2 bg-destructive text-white rounded-full w-6 h-6 flex items-center justify-center"
+              >
+                ×
               </button>
-            ))}
-          </div>
-        </div>
-        <div>
-          <h4 className="text-xs font-medium text-muted-foreground mb-2">Category</h4>
-          <select value={form.category} onChange={(e) => update("category", e.target.value)} className="w-full px-4 py-3 rounded-xl bg-secondary border border-border text-sm focus:outline-none focus:border-primary transition-colors">
-            {categoryList.map((c) => <option key={c} value={c}>{c}</option>)}
-          </select>
-          <p className="text-[10px] text-muted-foreground/70 mt-1.5">Manage categories from the Categories tab.</p>
-        </div>
-
-        {/* Image Upload */}
-        <div className="md:col-span-2 space-y-3">
-          <h4 className="text-xs font-medium text-muted-foreground">Product Images (auto-compressed under 500KB)</h4>
-          <div
-            onClick={() => fileInputRef.current?.click()}
-            className="border-2 border-dashed border-border rounded-xl p-6 text-center cursor-pointer hover:border-primary/50 transition-colors"
-          >
-            <Upload className="w-8 h-8 mx-auto text-muted-foreground mb-2" />
-            <p className="text-sm text-muted-foreground">
-              Click to upload images
-            </p>
-            <p className="text-xs text-muted-foreground/60 mt-1">Multiple images • You'll crop each one</p>
-          </div>
-          <input ref={fileInputRef} type="file" accept="image/*" multiple onChange={handleImageUpload} className="hidden" />
-
-          {form.images.length > 0 && (
-            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
-              {form.images.map((img, i) => (
-                <div key={i} className={`relative group rounded-xl overflow-hidden border-2 cursor-pointer transition-all ${i === thumbnailIndex ? "border-primary shadow-[0_0_10px_hsl(var(--primary)/0.3)]" : "border-border"}`} onClick={() => setThumbnailIndex(i)}>
-                  <img src={img} alt="" className="w-full aspect-square object-cover" />
-                  {i === thumbnailIndex && (
-                    <span className="absolute bottom-0 left-0 right-0 bg-primary text-primary-foreground text-[9px] text-center py-0.5 font-bold">THUMBNAIL</span>
-                  )}
-                  <button onClick={(e) => { e.stopPropagation(); removeImage(i); }} className="absolute top-1 right-1 p-1 bg-destructive/90 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
-                    <X className="w-3 h-3 text-white" />
-                  </button>
-                </div>
-              ))}
             </div>
-          )}
+          ))}
         </div>
-
-        <input placeholder="Specs (brief)" value={form.specs} onChange={(e) => update("specs", e.target.value)} className="md:col-span-2 px-4 py-3 rounded-xl bg-secondary border border-border text-sm focus:outline-none focus:border-primary transition-colors" />
-        <textarea placeholder="Description" value={form.description} onChange={(e) => update("description", e.target.value)} rows={3} className="md:col-span-2 px-4 py-3 rounded-xl bg-secondary border border-border text-sm focus:outline-none focus:border-primary resize-none transition-colors" />
-        <label className="flex items-center gap-2 text-sm font-medium">
-          <input type="checkbox" checked={form.featured} onChange={(e) => update("featured", e.target.checked)} className="rounded" />
-          Featured Product
-        </label>
       </div>
+      <label className="flex items-center gap-2">
+        <input type="checkbox" checked={featured} onChange={(e) => setFeatured(e.target.checked)} />
+        <span className="text-sm">Featured product</span>
+      </label>
       <div className="flex gap-3">
-        <button onClick={handleSave} className="btn-premium">Save Product</button>
-        <button onClick={onCancel} className="px-6 py-3 rounded-xl bg-secondary text-sm font-medium hover:bg-secondary/80 transition-colors">Cancel</button>
+        <button onClick={handleSave} className="btn-premium">
+          {product ? "Update Product" : "Add Product"}
+        </button>
+        <button onClick={onCancel} className="btn-secondary">
+          Cancel
+        </button>
       </div>
-      {pendingFiles.length > 0 && pendingFiles[cropIndex] && (
-        <ImageCropper
-          image={pendingFiles[cropIndex]}
-          aspect={undefined}
-          title={`Crop image ${cropIndex + 1} of ${pendingFiles.length}`}
-          onCancel={handleCropCancel}
-          onCropComplete={handleCropDone}
-        />
-      )}
     </motion.div>
   );
 }

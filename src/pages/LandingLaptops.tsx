@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useParams, Link, Navigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowRight, MapPin, Shield, Phone } from "lucide-react";
@@ -150,7 +150,29 @@ const CONFIGS: Record<string, LandingConfig> = {
 const LandingLaptops = () => {
   const { slug = "" } = useParams();
   const config = CONFIGS[slug];
-  const all = getProducts();
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
+  const [whatsappNumber, setWhatsappNumber] = useState("917879707696");
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const [products, whatsapp] = await Promise.all([
+          getProducts(),
+          getWhatsAppNumber(),
+        ]);
+        setAllProducts(products);
+        setWhatsappNumber(whatsapp);
+      } catch (err) {
+        console.error("Error loading data:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadData();
+  }, []);
+
+  const all = allProducts;
 
   const matches = useMemo(
     () => {
@@ -217,7 +239,7 @@ const LandingLaptops = () => {
             <div className="flex flex-wrap items-center gap-4 mt-6 text-sm text-muted-foreground">
               <span className="inline-flex items-center gap-2"><MapPin className="w-4 h-4 text-primary" /> Rasal Chowk, Jain Tower</span>
               <span className="inline-flex items-center gap-2"><Shield className="w-4 h-4 text-primary" /> Warranty included</span>
-              <a href={`tel:+91${getWhatsAppNumber().slice(-10)}`} className="inline-flex items-center gap-2 hover:text-primary"><Phone className="w-4 h-4 text-primary" /> Call to enquire</a>
+              <a href={`tel:+91${whatsappNumber.slice(-10)}`} className="inline-flex items-center gap-2 hover:text-primary"><Phone className="w-4 h-4 text-primary" /> Call to enquire</a>
             </div>
           </div>
         </ScrollReveal>
